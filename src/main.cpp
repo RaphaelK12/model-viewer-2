@@ -9,6 +9,7 @@
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_glfw.h>
+#include "Math/math.h"
 
 int Texture::GlobalTextureIndex = 0;
 
@@ -36,16 +37,18 @@ int main()
     Texture texture = LoadTextureFromFile("res/textures/dragon_texture_color.png");
     glUniform1i(shader.uniformLocations["diffuse"], texture.index);
 
-    glm::mat4 view(1.0f);
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-    glUniformMatrix4fv(shader.uniformLocations["view"], 1, GL_FALSE, &view[0][0]);
-
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / HEIGHT, 0.1f, 1000.0f);
     glUniformMatrix4fv(shader.uniformLocations["projection"], 1, GL_FALSE, &projection[0][0]);
+
+    bool rotating = false;
+    bool shouldReset = true;
+    glm::vec3 cameraRotation(0.0f, 0.0f, 0.0f);
 
     while(!glfwWindowShouldClose(display.window))
     {
         DeltaTimeCalc(display);
+        if(!ImGui::GetIO().WantCaptureMouse)
+            ProcessInput(display, cameraRotation, rotating, shouldReset);
 
         glm::mat4 model(1.0f);
         model = glm::translate(model, entity.position);
@@ -55,6 +58,13 @@ int main()
         model = glm::scale(model, entity.scale);
         glUniformMatrix4fv(shader.uniformLocations["model"], 1, GL_FALSE, &model[0][0]);
 
+        glm::mat4 view(1.0f);
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        view = glm::rotate(view, glm::radians(cameraRotation.x), {1.0f, 0.0f, 0.0f});
+        view = glm::rotate(view, glm::radians(cameraRotation.y), {0.0f, 1.0f, 0.0f});
+        view = glm::rotate(view, glm::radians(cameraRotation.z), {0.0f, 0.0f, 1.0f});
+        glUniformMatrix4fv(shader.uniformLocations["view"], 1, GL_FALSE, &view[0][0]);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glBindVertexArray(mesh.VAO);
         glDrawElements(GL_TRIANGLES, mesh.numVertices, GL_UNSIGNED_INT, nullptr);
@@ -63,9 +73,19 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         ImGui::Begin("Main Controls");
-        ImGui::SliderFloat3("Translation", &entity.position.x, -1.0f, 1.0f);
-        ImGui::SliderFloat3("Rotation", &entity.rotation.x, -360.0f, 360.0f);
-        ImGui::SliderFloat3("Scale", &entity.scale.x, 0.0f, 5.0f);
+        ImGui::Text("Model transform");
+        ImGui::SliderFloat3("Model Translation", &entity.position.x, -1.0f, 1.0f);
+        ImGui::SliderFloat3("Model Rotation", &entity.rotation.x, -360.0f, 360.0f);
+        ImGui::SliderFloat3("Model Scale", &entity.scale.x, 0.0f, 5.0f);
+        if(ImGui::Button("Reset model transform"))
+        {
+            entity.position = entity.rotation = glm::vec3(0.0f);
+            entity.scale = glm::vec3(1.0);
+        }
+        ImGui::Text("Camera transform");
+        ImGui::Checkbox("Rotate camera with mouse?", &rotating);
+        if(ImGui::Button("Reset camera rotation"))
+            cameraRotation = glm::vec3(0.0f);
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include "../Math/math.h"
 
 Display CreateDisplay(int width, int height, const char* title)
 {
@@ -38,7 +39,7 @@ Display CreateDisplay(int width, int height, const char* title)
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
-	Display result { "", window, width, height, 0.0f, 0.0f, 0, 0.0f };
+	Display result { "", window, width, height, 0.0f, 0.0f, 0, 0.0f, 0.0, 0.0 };
 	strcpy(result.title, title);
 	return result;
 }
@@ -63,4 +64,26 @@ void DeltaTimeCalc(Display& display)
 		display.numFrames = 0;
 		display.lastFPSTime = currentTime;
 	}
+}
+
+void ProcessInput(Display& display, glm::vec3& cameraRotation, bool rotating, bool& shouldReset)
+{
+	if(glfwGetMouseButton(display.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && rotating)
+	{
+		double xpos, ypos;
+		glfwGetCursorPos(display.window, &xpos, &ypos);
+		if(shouldReset)
+		{
+			display.mouseX = xpos;
+			display.mouseY = ypos;
+			shouldReset = false;
+		}
+
+		cameraRotation.y += (float)(xpos - display.mouseX);
+		cameraRotation.x += (float)(ypos - display.mouseY);
+		display.mouseX = xpos;
+		display.mouseY = ypos;
+	}
+	else if(glfwGetMouseButton(display.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE && !shouldReset)
+		shouldReset = true;
 }
