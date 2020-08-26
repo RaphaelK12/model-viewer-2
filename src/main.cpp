@@ -2,38 +2,37 @@
 #include <GLFW/glfw3.h>
 #include <cstdio>
 #include "AssetManagement/asset_loader.h"
+#include "Display/display.h"
 #include <glm/gtc/matrix_transform.hpp>
+
+// #include <imconfig.h>
+#include <imgui.h>
+#include <imgui_impl_opengl3.h>
+#include <imgui_impl_glfw.h>
 
 int main()
 {
     const int WIDTH = 1280;
     const int HEIGHT = 720;
 
-    // Initialize GLFW
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+    Display display = CreateDisplay(WIDTH, HEIGHT, "Model Viewer");
 
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Model Viewer", nullptr, nullptr);
-    if(window == nullptr)
-    {
-        printf("Failed to create GLFW window!\n");
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-    // Initialize GLAD
-	if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		printf("Failed to initialize GLAD!\n");
-		glfwTerminate();
-        return -1;
-	}
-	glViewport(0, 0, WIDTH, HEIGHT);
-	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsClassic();
+
+    // Setup Platform/Renderer bindings
+    ImGui_ImplGlfw_InitForOpenGL(display.window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+
+    // Our state
+    bool colorWindow = true;
+    ImVec4 color = {1.0f, 0.0f, 0.0f, 1.0f};
 
     // Load shader from file
     Shader shader = LoadShadersFromFiles("res/shaders/basic/basic.vert", "res/shaders/basic/basic.frag");
@@ -71,13 +70,28 @@ int main()
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / HEIGHT, 0.1f, 1000.0f);
     glUniformMatrix4fv(shader.uniformLocations["projection"], 1, GL_FALSE, &projection[0][0]);
 
-    while(!glfwWindowShouldClose(window))
+    while(!glfwWindowShouldClose(display.window))
     {
-        glClear(GL_COLOR_BUFFER_BIT);
+        DeltaTimeCalc(display);
 
+        glUniform4fv(shader.uniformLocations["inColor"], 1, (float*)&color);
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        if(colorWindow)
+        {
+            ImGui::Begin("Square color picker");
+            ImGui::ColorEdit3("Square color", (float*)&color);
+            ImGui::End();
+        }
+        ImGui::Render();
+
+        glClear(GL_COLOR_BUFFER_BIT);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(display.window);
         glfwPollEvents();
     }
 

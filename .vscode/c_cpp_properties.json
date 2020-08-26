@@ -6,7 +6,8 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/thirdparty/glad/include",
                 "${workspaceFolder}/thirdparty/GLFW-Clang/include",
-                "${workspaceFolder}/thirdparty/glm"
+                "${workspaceFolder}/thirdparty/glm",
+                "${workspaceFolder}/thirdparty/imgui-1.78"
             ],
             "defines": [
                 "UNICODE",
