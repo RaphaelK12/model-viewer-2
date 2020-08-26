@@ -76,6 +76,9 @@ int main()
 
         glUniform4fv(shader.uniformLocations["inColor"], 1, (float*)&color);
 
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -86,15 +89,15 @@ int main()
             ImGui::End();
         }
         ImGui::Render();
-
-        glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glfwSwapBuffers(display.window);
         glfwPollEvents();
     }
 
+    ImGui_ImplGlfw_Shutdown();
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }
