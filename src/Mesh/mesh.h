@@ -1,6 +1,13 @@
 #pragma once
 #include <glm/vec3.hpp>
 
+struct Mesh
+{
+    unsigned int VAO;
+    unsigned int VBO;
+    unsigned int numVertices;
+};
+
 struct MeshIndexed
 {
     unsigned int VAO;
@@ -17,3 +24,4 @@ struct Entity
 };
 
 MeshIndexed GenerateMeshIndexed(float* vertices, size_t numVertices, unsigned int* indices, size_t numIndices, float* uvs, size_t numUVs, float* normals, size_t numNormals);
+Mesh GenerateCube();

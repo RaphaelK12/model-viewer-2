@@ -29,20 +29,29 @@ int main()
     ImGui_ImplOpenGL3_Init("#version 330");
 
     // Load shader from file
-    Shader shader = LoadShadersFromFiles("res/shaders/textured/textured.vert", "res/shaders/textured/textured.frag");
+    Shader shader = LoadShadersFromFiles("res/shaders/lighting/lighting.vert", "res/shaders/lighting/lighting.frag");
     glUseProgram(shader.ID);
 
+    // Load mesh and its texture
     MeshIndexed mesh = LoadMeshIndexedFromOBJ("res/models/dragon.obj");
     Entity entity = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f) };
     Texture texture = LoadTextureFromFile("res/textures/dragon_texture_color.png");
     glUniform1i(shader.uniformLocations["diffuse"], texture.index);
 
+    // Load lightcube mesh
+    Mesh lightMesh = GenerateCube();
+    Shader lightShader = LoadShadersFromFiles("res/shaders/lightcube/lightcube.vert", "res/shaders/lightcube/lightcube.frag");
+
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / HEIGHT, 0.1f, 1000.0f);
     glUniformMatrix4fv(shader.uniformLocations["projection"], 1, GL_FALSE, &projection[0][0]);
 
+    // Camera info
     bool rotating = false;
     bool shouldReset = true;
     glm::vec3 cameraRotation(0.0f, 0.0f, 0.0f);
+
+    // Point light info
+    glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
 
     while(!glfwWindowShouldClose(display.window))
     {
@@ -50,6 +59,10 @@ int main()
         if(!ImGui::GetIO().WantCaptureMouse)
             ProcessInput(display, cameraRotation, rotating, shouldReset);
 
+        glUseProgram(shader.ID);
+        glUniform3fv(shader.uniformLocations["pointLightPos"], 1, &lightPos.x);
+
+        // Transform matrix for mesh
         glm::mat4 model(1.0f);
         model = glm::translate(model, entity.position);
         model = glm::rotate(model, glm::radians(entity.rotation.x), {1.0f, 0.0f, 0.0f});
@@ -58,6 +71,7 @@ int main()
         model = glm::scale(model, entity.scale);
         glUniformMatrix4fv(shader.uniformLocations["model"], 1, GL_FALSE, &model[0][0]);
 
+        // Transform matrix for camera
         glm::mat4 view(1.0f);
         view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
         view = glm::rotate(view, glm::radians(cameraRotation.x), {1.0f, 0.0f, 0.0f});
@@ -65,10 +79,25 @@ int main()
         view = glm::rotate(view, glm::radians(cameraRotation.z), {0.0f, 0.0f, 1.0f});
         glUniformMatrix4fv(shader.uniformLocations["view"], 1, GL_FALSE, &view[0][0]);
 
+        // Render the mesh
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glBindVertexArray(mesh.VAO);
         glDrawElements(GL_TRIANGLES, mesh.numVertices, GL_UNSIGNED_INT, nullptr);
 
+        // Switch to light shader for lightcube rendering
+        glUseProgram(lightShader.ID);
+        model = glm::mat4(1.0);
+        model = glm::translate(model, lightPos);
+        model = glm::scale(model, glm::vec3(0.2));
+        glUniformMatrix4fv(lightShader.uniformLocations["model"], 1, GL_FALSE, &model[0][0]);
+        glUniformMatrix4fv(lightShader.uniformLocations["view"], 1, GL_FALSE, &view[0][0]);
+        glUniformMatrix4fv(lightShader.uniformLocations["projection"], 1, GL_FALSE, &projection[0][0]);
+
+        // Render light mesh
+        glBindVertexArray(lightMesh.VAO);
+        glDrawArrays(GL_TRIANGLES, 0, lightMesh.numVertices);
+
+        // Start ImGui frame and render the window
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -86,6 +115,8 @@ int main()
         ImGui::Checkbox("Rotate camera with mouse?", &rotating);
         if(ImGui::Button("Reset camera rotation"))
             cameraRotation = glm::vec3(0.0f);
+        ImGui::Text("Point light");
+        ImGui::SliderFloat3("Light Position", &lightPos.x, -5.0f, 5.0f);
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
