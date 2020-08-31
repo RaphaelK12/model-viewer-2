@@ -60,6 +60,7 @@ int main()
 
         glUseProgram(shader.ID);
         glUniform3fv(shader.uniformLocations["pointLightPos"], 1, &lightPos.x);
+        glUniform3fv(shader.uniformLocations["cameraPos"], 1, &camera.position.x);
 
         // Transform matrix for mesh
         glm::mat4 model(1.0f);
