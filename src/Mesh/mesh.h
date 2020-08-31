@@ -8,6 +8,7 @@ struct Mesh
     unsigned int numVertices;
 };
 
+
 struct MeshIndexed
 {
     unsigned int VAO;
@@ -25,6 +26,10 @@ struct Entity
     glm::vec3 scale;
 };
 
+void Draw(Mesh& mesh);
+void Draw(MeshIndexed& mesh);
+
 MeshIndexed GenerateMeshIndexed(float* vertices, size_t numVertices, unsigned int* indices, size_t numIndices, float* uvs, size_t numUVs, float* normals, size_t numNormals);
+
 Mesh GenerateCube();
 Mesh GenerateAxes();

@@ -1,6 +1,18 @@
 #include "mesh.h"
 #include <glad/glad.h>
 
+void Draw(Mesh& mesh)
+{
+    glBindVertexArray(mesh.VAO);
+    glDrawArrays(GL_TRIANGLES, 0, mesh.numVertices);
+}
+
+void Draw(MeshIndexed& mesh)
+{
+    glBindVertexArray(mesh.VAO);
+    glDrawElements(GL_TRIANGLES, mesh.numVertices, GL_UNSIGNED_INT, nullptr);
+}
+
 MeshIndexed GenerateMeshIndexed(float* vertices, size_t numVertices, unsigned int* indices, size_t numIndices, float* uvs, size_t numUVs, float* normals, size_t numNormals)
 {
     MeshIndexed result;

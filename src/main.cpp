@@ -31,7 +31,7 @@ int main()
 
     // Load shader from file
     Shader shader = LoadShadersFromFiles("res/shaders/lighting/lighting.vert", "res/shaders/lighting/lighting.frag");
-    glUseProgram(shader.ID);
+    UseShader(shader);
 
     std::vector<Model> models;
     models.push_back
@@ -61,7 +61,7 @@ int main()
     Shader debugShader = LoadShadersFromFiles("res/shaders/debug/debug.vert", "res/shaders/debug/debug.frag");
 
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / HEIGHT, 0.1f, 1000.0f);
-    glUniformMatrix4fv(shader.uniformLocations["projection"], 1, GL_FALSE, &projection[0][0]);
+    UniformMat4(shader, "projection", projection);
 
     // Camera info
     bool shouldReset = false;
@@ -81,9 +81,9 @@ int main()
         if(!ImGui::GetIO().WantCaptureMouse)
             ProcessInput(display, camera, rotating, shouldReset);
 
-        glUseProgram(shader.ID);
-        glUniform3fv(shader.uniformLocations["pointLightPos"], 1, &lightPos.x);
-        glUniform3fv(shader.uniformLocations["cameraPos"], 1, &camera.position.x);
+        UseShader(shader);
+        UniformVec3(shader, "pointLightPos", lightPos);
+        UniformVec3(shader, "cameraPos", camera.position);
 
         // Transform matrix for mesh
         glm::mat4 model(1.0f);
@@ -92,43 +92,41 @@ int main()
         model = glm::rotate(model, glm::radians(entity.rotation.y), {0.0f, 1.0f, 0.0f});
         model = glm::rotate(model, glm::radians(entity.rotation.z), {0.0f, 0.0f, 1.0f});
         model = glm::scale(model, entity.scale);
-        glUniformMatrix4fv(shader.uniformLocations["model"], 1, GL_FALSE, &model[0][0]);
+        UniformMat4(shader, "model", model);
 
         // Transform matrix for camera
         glm::mat4 view = glm::lookAt(camera.position, camera.position + camera.forward, camera.up);
-        glUniformMatrix4fv(shader.uniformLocations["view"], 1, GL_FALSE, &view[0][0]);
+        UniformMat4(shader, "view", view);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Render the mesh
-        glUniform1i(shader.uniformLocations["diffuse"], models[currentModel].texture.index);
-        glBindVertexArray(models[currentModel].mesh.VAO);
-        glDrawElements(GL_TRIANGLES, models[currentModel].mesh.numVertices, GL_UNSIGNED_INT, nullptr);
+        UniformInt(shader, "diffuse", models[currentModel].texture.index);
+        Draw(models[currentModel].mesh);
 
         // Switch to light shader for lightcube rendering
-        glUseProgram(lightShader.ID);
+        UseShader(lightShader);
         model = glm::mat4(1.0);
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f));
-        glUniformMatrix4fv(lightShader.uniformLocations["model"], 1, GL_FALSE, &model[0][0]);
-        glUniformMatrix4fv(lightShader.uniformLocations["view"], 1, GL_FALSE, &view[0][0]);
-        glUniformMatrix4fv(lightShader.uniformLocations["projection"], 1, GL_FALSE, &projection[0][0]);
+        UniformMat4(lightShader, "model", model);
+        UniformMat4(lightShader, "view", view);
+        UniformMat4(lightShader, "projection", projection);
 
-        // Render light mesh
-        glBindVertexArray(lightMesh.VAO);
-        glDrawArrays(GL_TRIANGLES, 0, lightMesh.numVertices);
+        Draw(lightMesh);
 
         if(axes)
         {
             glDisable(GL_DEPTH_TEST);
-
+            UseShader(debugShader);
+            
             glm::mat4 debugModel(1.0f);
             debugModel = glm::scale(debugModel, { 10.0f, 10.0f, 10.0f });
+
             glm::mat4 MVP = projection * view * debugModel;
-            glUseProgram(debugShader.ID);
-            glUniformMatrix4fv(debugShader.uniformLocations["MVP"], 1, GL_FALSE, &MVP[0][0]);
-            glBindVertexArray(debugAxes.VAO);
-            glDrawArrays(GL_LINES, 0, debugAxes.numVertices);
+            UniformMat4(debugShader, "MVP", MVP);
+
+            Draw(debugAxes);
 
             glEnable(GL_DEPTH_TEST);
         }

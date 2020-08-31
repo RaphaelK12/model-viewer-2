@@ -9,8 +9,8 @@ if "%1"=="debug" set "compiler_flags=/W4 /Zi"
 
 if not exist "build" mkdir build
 
-set "source_files=src/main.cpp src/Mesh/mesh.cpp src/Display/display.cpp src/AssetManagement/asset_loader.cpp"
-set "tp_source_files=thirdparty/glad/src/glad.c thirdparty/imgui-1.78/imgui.cpp thirdparty/imgui-1.78/imgui_draw.cpp thirdparty/imgui-1.78/imgui_impl_glfw.cpp thirdparty/imgui-1.78/imgui_impl_opengl3.cpp thirdparty/imgui-1.78/imgui_widgets.cpp"
+set "source_files=src/main.cpp src/Mesh/mesh.cpp src/Display/display.cpp src/AssetManagement/*.cpp"
+set "tp_source_files=thirdparty/glad/src/glad.c thirdparty/imgui-1.78/*.cpp"
 
 set "include_dirs=/Ithirdparty /Ithirdparty/glad/include /Ithirdparty/GLFW/include /Ithirdparty/imgui-1.78 /Ithirdparty/glm"
 set "lib_dirs=/LIBPATH:thirdparty/GLFW/lib"
