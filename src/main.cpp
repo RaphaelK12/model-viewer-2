@@ -5,11 +5,9 @@
 #include "Display/display.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-// #include <imconfig.h>
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_glfw.h>
-#include "Math/math.h"
 
 int Texture::GlobalTextureIndex = 0;
 

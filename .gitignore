@@ -2,3 +2,5 @@
 *.pdb
 *.out
 *.ini
+x64
+.vs
