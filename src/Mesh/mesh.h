@@ -25,3 +25,4 @@ struct Entity
 
 MeshIndexed GenerateMeshIndexed(float* vertices, size_t numVertices, unsigned int* indices, size_t numIndices, float* uvs, size_t numUVs, float* normals, size_t numNormals);
 Mesh GenerateCube();
+Mesh GenerateAxes();

@@ -41,6 +41,10 @@ int main()
     Mesh lightMesh = GenerateCube();
     Shader lightShader = LoadShadersFromFiles("res/shaders/lightcube/lightcube.vert", "res/shaders/lightcube/lightcube.frag");
 
+    // Used for debug axes view
+    Mesh debugAxes = GenerateAxes();
+    Shader debugShader = LoadShadersFromFiles("res/shaders/debug/debug.vert", "res/shaders/debug/debug.frag");
+
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / HEIGHT, 0.1f, 1000.0f);
     glUniformMatrix4fv(shader.uniformLocations["projection"], 1, GL_FALSE, &projection[0][0]);
 
@@ -48,6 +52,7 @@ int main()
     Camera camera = { {0.0f, 0.0f, 3.0f}, {0.0f, 0.0f, -3.0f}, {0.0f, 1.0f, 0.0f}, 0.0f, 0.0f, true };
     bool rotating = false;
     bool shouldReset = false;
+    bool axes = false;
 
     // Point light info
     glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
@@ -93,11 +98,27 @@ int main()
         glBindVertexArray(lightMesh.VAO);
         glDrawArrays(GL_TRIANGLES, 0, lightMesh.numVertices);
 
+        if(axes)
+        {
+            glDisable(GL_DEPTH_TEST);
+
+            glm::mat4 debugModel(1.0f);
+            debugModel = glm::scale(debugModel, { 10.0f, 10.0f, 10.0f });
+            glm::mat4 MVP = projection * view * debugModel;
+            glUseProgram(debugShader.ID);
+            glUniformMatrix4fv(debugShader.uniformLocations["MVP"], 1, GL_FALSE, &MVP[0][0]);
+            glBindVertexArray(debugAxes.VAO);
+            glDrawArrays(GL_LINES, 0, debugAxes.numVertices);
+
+            glEnable(GL_DEPTH_TEST);
+        }
+
         // Start ImGui frame and render the window
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         ImGui::Begin("Main Controls");
+        ImGui::Checkbox("Show Debug Axes?", &axes);
         ImGui::Text("Model transform");
         ImGui::SliderFloat3("Model Translation", &entity.position.x, -1.0f, 1.0f);
         ImGui::SliderFloat3("Model Rotation", &entity.rotation.x, -360.0f, 360.0f);

@@ -106,3 +106,39 @@ Mesh GenerateCube()
 
     return result;
 }
+
+Mesh GenerateAxes()
+{
+    float vertices[]
+    {
+        // x axis
+        1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+
+        // y axis
+        0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+
+        // z axis
+        0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+    };
+
+    Mesh result;
+    result.numVertices = 6;
+
+    glGenVertexArrays(1, &result.VAO);
+    glBindVertexArray(result.VAO);
+
+    glGenBuffers(1, &result.VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, result.VBO);
+    glBufferData(GL_ARRAY_BUFFER, 6 * 6 * sizeof(float), vertices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    return result;
+}
