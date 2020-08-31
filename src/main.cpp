@@ -2,9 +2,12 @@
 #include <GLFW/glfw3.h>
 #include <cstdio>
 #include "AssetManagement/asset_loader.h"
+#include "Mesh/model.h"
 #include "Display/display.h"
 #include "Camera/camera.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <unordered_map>
+#include <vector>
 
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
@@ -31,11 +34,24 @@ int main()
     Shader shader = LoadShadersFromFiles("res/shaders/lighting/lighting.vert", "res/shaders/lighting/lighting.frag");
     glUseProgram(shader.ID);
 
-    // Load mesh and its texture
-    MeshIndexed mesh = LoadMeshIndexedFromOBJ("res/models/dragon.obj");
+    std::vector<Model> models;
+    models.push_back
+    ({
+        LoadMeshIndexedFromOBJ("res/models/dragon.obj"),
+        LoadTextureFromFile("res/textures/dragon_texture_color.png"),
+        std::string("Dragon")
+    });
+    models.push_back
+    ({
+        LoadMeshIndexedFromOBJ("res/models/suzanne.obj"),
+        LoadTextureFromFile("res/textures/suzanne_texture_color.png"),
+        std::string("Suzanne")
+    });
+    std::vector<const char*> modelNames;
+    for(auto& m : models)
+        modelNames.push_back(m.name.c_str());
+
     Entity entity = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f) };
-    Texture texture = LoadTextureFromFile("res/textures/dragon_texture_color.png");
-    glUniform1i(shader.uniformLocations["diffuse"], texture.index);
 
     // Load lightcube mesh
     Mesh lightMesh = GenerateCube();
@@ -50,9 +66,12 @@ int main()
 
     // Camera info
     Camera camera = { {0.0f, 0.0f, 3.0f}, {0.0f, 0.0f, -3.0f}, {0.0f, 1.0f, 0.0f}, 0.0f, 0.0f, true };
-    bool rotating = false;
     bool shouldReset = false;
+
+    // ImGui state
+    bool rotating = false;
     bool axes = false;
+    int currentModel = 0;
 
     // Point light info
     glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
@@ -80,10 +99,12 @@ int main()
         glm::mat4 view = glm::lookAt(camera.position, camera.position + camera.forward, camera.up);
         glUniformMatrix4fv(shader.uniformLocations["view"], 1, GL_FALSE, &view[0][0]);
 
-        // Render the mesh
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glBindVertexArray(mesh.VAO);
-        glDrawElements(GL_TRIANGLES, mesh.numVertices, GL_UNSIGNED_INT, nullptr);
+
+        // Render the mesh
+        glUniform1i(shader.uniformLocations["diffuse"], models[currentModel].texture.index);
+        glBindVertexArray(models[currentModel].mesh.VAO);
+        glDrawElements(GL_TRIANGLES, models[currentModel].mesh.numVertices, GL_UNSIGNED_INT, nullptr);
 
         // Switch to light shader for lightcube rendering
         glUseProgram(lightShader.ID);
@@ -118,6 +139,7 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         ImGui::Begin("Main Controls");
+        ImGui::Combo("Test", &currentModel, modelNames.data(), (int)modelNames.size());
         ImGui::Checkbox("Show Debug Axes?", &axes);
         ImGui::Text("Model transform");
         ImGui::SliderFloat3("Model Translation", &entity.position.x, -1.0f, 1.0f);
@@ -144,5 +166,6 @@ int main()
     ImGui_ImplOpenGL3_Shutdown();
     ImGui::DestroyContext();
     glfwTerminate();
+
     return 0;
 }

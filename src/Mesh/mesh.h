@@ -14,6 +14,8 @@ struct MeshIndexed
     unsigned int VBO[3];
     unsigned int EBO;
     unsigned int numVertices;
+
+    unsigned int diffuseIndex;
 };
 
 struct Entity

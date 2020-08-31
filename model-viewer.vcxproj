@@ -133,6 +133,7 @@
     <ClInclude Include="src\display\display.h" />
     <ClInclude Include="src\math\math.h" />
     <ClInclude Include="src\mesh\mesh.h" />
+    <ClInclude Include="src\Mesh\model.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

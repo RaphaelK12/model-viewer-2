@@ -1,5 +1,4 @@
 #include "asset_loader.h"
-#include "../Mesh/mesh.h"
 #include <glad/glad.h>
 #include <map>
 
