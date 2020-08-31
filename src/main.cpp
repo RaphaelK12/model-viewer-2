@@ -3,6 +3,7 @@
 #include <cstdio>
 #include "AssetManagement/asset_loader.h"
 #include "Display/display.h"
+#include "Camera/camera.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <imgui.h>
@@ -44,9 +45,9 @@ int main()
     glUniformMatrix4fv(shader.uniformLocations["projection"], 1, GL_FALSE, &projection[0][0]);
 
     // Camera info
+    Camera camera = { {0.0f, 0.0f, 3.0f}, {0.0f, 0.0f, -3.0f}, {0.0f, 1.0f, 0.0f}, 0.0f, 0.0f, true };
     bool rotating = false;
-    bool shouldReset = true;
-    glm::vec3 cameraRotation(0.0f, 0.0f, 0.0f);
+    bool shouldReset = false;
 
     // Point light info
     glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
@@ -55,7 +56,7 @@ int main()
     {
         DeltaTimeCalc(display);
         if(!ImGui::GetIO().WantCaptureMouse)
-            ProcessInput(display, cameraRotation, rotating, shouldReset);
+            ProcessInput(display, camera, rotating, shouldReset);
 
         glUseProgram(shader.ID);
         glUniform3fv(shader.uniformLocations["pointLightPos"], 1, &lightPos.x);
@@ -70,11 +71,7 @@ int main()
         glUniformMatrix4fv(shader.uniformLocations["model"], 1, GL_FALSE, &model[0][0]);
 
         // Transform matrix for camera
-        glm::mat4 view(1.0f);
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-        view = glm::rotate(view, glm::radians(cameraRotation.x), {1.0f, 0.0f, 0.0f});
-        view = glm::rotate(view, glm::radians(cameraRotation.y), {0.0f, 1.0f, 0.0f});
-        view = glm::rotate(view, glm::radians(cameraRotation.z), {0.0f, 0.0f, 1.0f});
+        glm::mat4 view = glm::lookAt(camera.position, camera.position + camera.forward, camera.up);
         glUniformMatrix4fv(shader.uniformLocations["view"], 1, GL_FALSE, &view[0][0]);
 
         // Render the mesh
@@ -111,8 +108,6 @@ int main()
         }
         ImGui::Text("Camera transform");
         ImGui::Checkbox("Rotate camera with mouse?", &rotating);
-        if(ImGui::Button("Reset camera rotation"))
-            cameraRotation = glm::vec3(0.0f);
         ImGui::Text("Point light");
         ImGui::SliderFloat3("Light Position", &lightPos.x, -5.0f, 5.0f);
         ImGui::End();

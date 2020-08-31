@@ -20,4 +20,4 @@ struct Display
 
 Display CreateDisplay(int width, int height, const char* title);
 void DeltaTimeCalc(Display& display);
-void ProcessInput(Display& display, glm::vec3& cameraRotation, bool rotating, bool& shouldReset);
+void ProcessInput(Display& display, struct Camera& camera, bool rotating, bool& shouldReset);

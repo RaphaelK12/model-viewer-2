@@ -6,7 +6,8 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
-#include "../Math/math.h"
+#include <cmath>
+#include "../Camera/camera.h"
 
 Display CreateDisplay(int width, int height, const char* title)
 {
@@ -66,7 +67,7 @@ void DeltaTimeCalc(Display& display)
 	}
 }
 
-void ProcessInput(Display& display, glm::vec3& cameraRotation, bool rotating, bool& shouldReset)
+void ProcessInput(Display& display, Camera& camera, bool rotating, bool& shouldReset)
 {
 	if(glfwGetMouseButton(display.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && rotating)
 	{
@@ -79,8 +80,29 @@ void ProcessInput(Display& display, glm::vec3& cameraRotation, bool rotating, bo
 			shouldReset = false;
 		}
 
-		cameraRotation.y += (float)(xpos - display.mouseX);
-		cameraRotation.x += (float)(ypos - display.mouseY);
+		if(camera.firstClick)
+		{
+			display.mouseX = xpos;
+			display.mouseY = ypos;
+			camera.firstClick = false;
+			return;
+		}
+
+		camera.yaw += (float)(xpos - display.mouseX);
+		camera.pitch += (float)(display.mouseY - ypos);
+
+		// Fixes able to look upside down
+		if(camera.pitch > 89.0f)
+			camera.pitch = 89.0f;
+		if(camera.pitch < -89.0f)
+			camera.pitch = -89.0f;
+
+		camera.forward.x = cos(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
+		camera.forward.y = sin(glm::radians(camera.pitch));
+		camera.forward.z = sin(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
+		camera.forward = glm::normalize(camera.forward);
+		camera.position = -camera.forward * 3.0f;
+
 		display.mouseX = xpos;
 		display.mouseY = ypos;
 	}

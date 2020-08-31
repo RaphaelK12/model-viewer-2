@@ -129,6 +129,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\assetmanagement\asset_loader.h" />
+    <ClInclude Include="src\Camera\camera.h" />
     <ClInclude Include="src\display\display.h" />
     <ClInclude Include="src\math\math.h" />
     <ClInclude Include="src\mesh\mesh.h" />
