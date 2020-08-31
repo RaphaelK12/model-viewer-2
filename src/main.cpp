@@ -65,8 +65,8 @@ int main()
     glUniformMatrix4fv(shader.uniformLocations["projection"], 1, GL_FALSE, &projection[0][0]);
 
     // Camera info
-    Camera camera = { {0.0f, 0.0f, 3.0f}, {0.0f, 0.0f, -3.0f}, {0.0f, 1.0f, 0.0f}, 0.0f, 0.0f, true };
     bool shouldReset = false;
+    Camera camera = { {0.0f, 0.0f, 3.0f}, {0.0f, 0.0f, -3.0f}, {0.0f, 1.0f, 0.0f}, 0.0f, 0.0f, true, 3.0f };
 
     // ImGui state
     bool rotating = false;
@@ -150,7 +150,12 @@ int main()
             entity.position = entity.rotation = glm::vec3(0.0f);
             entity.scale = glm::vec3(1.0);
         }
-        ImGui::Text("Camera transform");
+        ImGui::Text("Camera Controls");
+        if(ImGui::SliderFloat("Camera distance", &camera.cameraDistance, 1.0f, 10.0f))
+        {
+            camera.forward = glm::normalize(camera.forward) * camera.cameraDistance;
+            camera.position = -camera.forward;
+        }
         ImGui::Checkbox("Rotate camera with mouse?", &rotating);
         ImGui::Text("Point light");
         ImGui::SliderFloat3("Light Position", &lightPos.x, -5.0f, 5.0f);

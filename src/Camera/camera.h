@@ -9,4 +9,5 @@ struct Camera
 
 	float yaw, pitch;
 	float firstClick;
+	float cameraDistance;
 };
