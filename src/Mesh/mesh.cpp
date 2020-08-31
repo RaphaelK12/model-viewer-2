@@ -4,7 +4,7 @@
 MeshIndexed GenerateMeshIndexed(float* vertices, size_t numVertices, unsigned int* indices, size_t numIndices, float* uvs, size_t numUVs, float* normals, size_t numNormals)
 {
     MeshIndexed result;
-    result.numVertices = numIndices;
+    result.numVertices = (unsigned int)numIndices;
 
     glGenVertexArrays(1, &result.VAO);
     glBindVertexArray(result.VAO);

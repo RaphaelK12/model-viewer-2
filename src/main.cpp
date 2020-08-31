@@ -6,7 +6,6 @@
 #include "Display/display.h"
 #include "Camera/camera.h"
 #include <glm/gtc/matrix_transform.hpp>
-#include <unordered_map>
 #include <vector>
 
 #include <imgui.h>
@@ -110,7 +109,7 @@ int main()
         glUseProgram(lightShader.ID);
         model = glm::mat4(1.0);
         model = glm::translate(model, lightPos);
-        model = glm::scale(model, glm::vec3(0.2));
+        model = glm::scale(model, glm::vec3(0.2f));
         glUniformMatrix4fv(lightShader.uniformLocations["model"], 1, GL_FALSE, &model[0][0]);
         glUniformMatrix4fv(lightShader.uniformLocations["view"], 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(lightShader.uniformLocations["projection"], 1, GL_FALSE, &projection[0][0]);

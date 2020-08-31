@@ -2,5 +2,7 @@
 *.pdb
 *.out
 *.ini
+*.ilk
 x64
 .vs
+build

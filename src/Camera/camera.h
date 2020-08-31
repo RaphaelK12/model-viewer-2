@@ -8,6 +8,6 @@ struct Camera
 	glm::vec3 up;
 
 	float yaw, pitch;
-	float firstClick;
+	bool firstClick;
 	float cameraDistance;
 };
