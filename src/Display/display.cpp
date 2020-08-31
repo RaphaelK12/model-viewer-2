@@ -9,14 +9,6 @@
 #include <cmath>
 #include "../Camera/camera.h"
 
-// This is the only sane way to do this
-double scrollX, scrollY;
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	scrollX = xoffset;
-	scrollY = yoffset;
-}
-
 Display CreateDisplay(int width, int height, const char* title)
 {
 	// Init GLFW
@@ -34,7 +26,6 @@ Display CreateDisplay(int width, int height, const char* title)
 		exit(-1);
 	}
 	glfwMakeContextCurrent(window);
-	glfwSetScrollCallback(window, scroll_callback);
 	glfwSwapInterval(1);
 
 	// Initialize GLAD
