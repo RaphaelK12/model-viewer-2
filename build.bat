@@ -5,7 +5,6 @@ if not defined DevEnvDir (
 )
 
 set "compiler_flags=/W4 /O2"
-if "%1"=="debug" set "compiler_flags=/W4 /Zi"
 
 if not exist "build" mkdir build
 
