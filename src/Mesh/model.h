@@ -4,6 +4,7 @@
 struct Model
 {
     MeshIndexed mesh;
-    Texture texture;
+    Texture diffuse;
+    Texture normal;
     std::string name;
 };

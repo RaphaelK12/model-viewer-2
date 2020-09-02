@@ -7,45 +7,66 @@ void Draw(Mesh& mesh)
     glDrawArrays(GL_TRIANGLES, 0, mesh.numVertices);
 }
 
+void DrawLines(Mesh& mesh)
+{
+    glBindVertexArray(mesh.VAO);
+    glDrawArrays(GL_LINES, 0, mesh.numVertices);
+}
+
 void Draw(MeshIndexed& mesh)
 {
     glBindVertexArray(mesh.VAO);
     glDrawElements(GL_TRIANGLES, mesh.numVertices, GL_UNSIGNED_INT, nullptr);
 }
 
-MeshIndexed GenerateMeshIndexed(float* vertices, size_t numVertices, unsigned int* indices, size_t numIndices, float* uvs, size_t numUVs, float* normals, size_t numNormals)
+MeshIndexed GenerateMeshIndexed(std::vector<glm::vec3>& vertices, std::vector<unsigned int>& indices, std::vector<glm::vec2>& uvs, std::vector<glm::vec3>& normals, std::vector<glm::vec3>& tangents, std::vector<glm::vec3>& bitangents)
 {
     MeshIndexed result;
-    result.numVertices = (unsigned int)numIndices;
+    result.numVertices = (unsigned int)indices.size();
 
     glGenVertexArrays(1, &result.VAO);
     glBindVertexArray(result.VAO);
-    glGenBuffers(3, result.VBO);
+    glGenBuffers(5, result.VBO);
 
     // Pass vertex positions as attribute
     glBindBuffer(GL_ARRAY_BUFFER, result.VBO[0]);
-    glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(float), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (int)vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     // Pass UVs as attribute
     glBindBuffer(GL_ARRAY_BUFFER, result.VBO[1]);
-    glBufferData(GL_ARRAY_BUFFER, numUVs * sizeof(float), uvs, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (int)uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     // Pass normals as attribute
     glBindBuffer(GL_ARRAY_BUFFER, result.VBO[2]);
-    glBufferData(GL_ARRAY_BUFFER, numNormals * sizeof(float), normals, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (int)normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
     
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
+    // Pass tangents as attribute
+    glBindBuffer(GL_ARRAY_BUFFER, result.VBO[3]);
+    glBufferData(GL_ARRAY_BUFFER, (int)tangents.size() * sizeof(glm::vec3), &tangents[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+    // Pass bitangents as attribute
+    glBindBuffer(GL_ARRAY_BUFFER, result.VBO[4]);
+    glBufferData(GL_ARRAY_BUFFER, (int)bitangents.size() * sizeof(glm::vec3), &bitangents[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+    // Pass indices
     glGenBuffers(1, &result.EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, result.EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (int)indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
     return result;
 }

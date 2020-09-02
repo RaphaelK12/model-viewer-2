@@ -1,6 +1,7 @@
 #include "asset_loader.h"
 #include <glad/glad.h>
 #include <map>
+#include <glm/glm.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -80,6 +81,17 @@ Shader LoadShadersFromFiles(const char* vertexShaderPath, const char* fragmentSh
     glAttachShader(ID, fragment);
     glLinkProgram(ID);
 
+    // Check the linking status
+    int infoLength = 0;
+    glGetProgramiv(ID, GL_LINK_STATUS, &compiled);
+    glGetProgramiv(ID, GL_INFO_LOG_LENGTH, &infoLength);
+    if(infoLength > 0)
+    {
+        std::vector<char> ProgramErrorMessage(infoLength + 1);
+        glGetProgramInfoLog(ID, infoLength, NULL, &ProgramErrorMessage[0]);
+        printf("%s\n", &ProgramErrorMessage[0]);
+    }
+
     // Get uniform names and locations from program 
     std::unordered_map<std::string, int> uniforms;
 
@@ -141,13 +153,13 @@ Texture LoadTextureFromFile(const char* path)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
         if(channels == 1)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
         else if(channels == 2)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, width, height, 0, GL_RG, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, width, height, 0, GL_RG, GL_UNSIGNED_BYTE, data);
         else if(channels == 3)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         else if(channels == 4)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         else
         {
             printf("Image loaded isn't in any of the supported formats!\n(Supported: RGB, RGBA)\n");
@@ -178,9 +190,9 @@ MeshIndexed LoadMeshIndexedFromOBJ(const char* path)
         exit(-1);
     }
 
-    std::vector<float> vertices;
-    std::vector<float> uvs;
-    std::vector<float> normals;
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec2> uvs;
+    std::vector<glm::vec3> normals;
 
     std::vector<unsigned int> vertexIndices;
     std::vector<unsigned int> textureIndices;
@@ -198,9 +210,7 @@ MeshIndexed LoadMeshIndexedFromOBJ(const char* path)
             if(fscanf(objRaw, "%f %f %f\n", &x, &y, &z) == EOF)
                 printf("Invalid format detected in OBJ file!\n");
 
-            vertices.push_back(x);
-            vertices.push_back(y);
-            vertices.push_back(z);
+            vertices.emplace_back(x, y, z);
         }
         else if(!strcmp(buffer, "vt"))
         {
@@ -208,8 +218,7 @@ MeshIndexed LoadMeshIndexedFromOBJ(const char* path)
             if(fscanf(objRaw, "%f %f\n", &u, &v) == EOF)
                 printf("Invalid format detected in OBJ file!\n");
 
-            uvs.push_back(u);
-            uvs.push_back(v);
+            uvs.emplace_back(u, v);
         }
         else if(!strcmp(buffer, "vn"))
         {
@@ -217,9 +226,7 @@ MeshIndexed LoadMeshIndexedFromOBJ(const char* path)
             if(fscanf(objRaw, "%f %f %f\n", &x, &y, &z) == EOF)
                 printf("Invalid format detected in OBJ file!\n");
 
-            normals.push_back(x);
-            normals.push_back(y);
-            normals.push_back(z);
+            normals.emplace_back(x, y, z);
         }
         else if(!strcmp(buffer, "f"))
         {
@@ -245,9 +252,9 @@ MeshIndexed LoadMeshIndexedFromOBJ(const char* path)
 
     // A big thank you to this answer for the algorithm.
     // https://stackoverflow.com/a/23356738
-    std::vector<float> finalVertices;
-    std::vector<float> finalUVs;
-    std::vector<float> finalNormals;
+    std::vector<glm::vec3> finalVertices;
+    std::vector<glm::vec2> finalUVs;
+    std::vector<glm::vec3> finalNormals;
     std::vector<unsigned int> finalIndices;
 
     int nextCombinedIndex = 0;
@@ -269,22 +276,70 @@ MeshIndexed LoadMeshIndexedFromOBJ(const char* path)
             indexMap[indexData] = combinedIndex;
             nextCombinedIndex++;
 
-            finalVertices.push_back(vertices[3 * vindex]);
-            finalVertices.push_back(vertices[3 * vindex + 1]);
-            finalVertices.push_back(vertices[3 * vindex + 2]);
-
-            finalUVs.push_back(uvs[2 * uvindex]);
-            finalUVs.push_back(uvs[2 * uvindex + 1]);
-
-            finalNormals.push_back(normals[3 * nindex]);
-            finalNormals.push_back(normals[3 * nindex + 1]);
-            finalNormals.push_back(normals[3 * nindex + 2]);
+            finalVertices.push_back(vertices[vindex]);
+            finalUVs.push_back(uvs[uvindex]);
+            finalNormals.push_back(normals[nindex]);
         }
 
         finalIndices.push_back(combinedIndex);
     }
 
+    std::vector<glm::vec3> tangents;
+    std::vector<glm::vec3> bitangents;
+    for(size_t i = 0; i < finalVertices.size() - 2; i+=3)
+    {
+        glm::vec3& P1 = finalVertices[i];
+        glm::vec3& P2 = finalVertices[i + 1];
+        glm::vec3& P3 = finalVertices[i + 2];
+
+        // Calculate tangent and bitangent vectors
+        glm::vec2& uv1 = finalUVs[i + 0];
+        glm::vec2& uv2 = finalUVs[i + 1];
+        glm::vec2& uv3 = finalUVs[i + 2];
+
+        glm::vec3 edge1 = P2 - P1;
+        glm::vec3 edge2 = P3 - P1;
+        glm::vec2 deltaUV1 = uv2 - uv1;
+        glm::vec2 deltaUV2 = uv3 - uv1;
+
+        /*  Resolve the following: 
+                Q1 = uv1.x * T + uv1.y * B
+                Q2 = uv2.x * T + uv2.y * B
+
+            Rewrite as a matrix multiplication:
+                | Q1.x Q1.y Q1.z |   | uv1.x uv1.y |   | T.x T.y T.z |
+                | Q2.x Q2.y Q2.z | = | uv2.x uv2.y | * | B.x B.y B.z |
+
+            Multiply both sides with inverse uv matrix
+                | T.x T.y T.z |       | uv2.y -uv1.y |   | Q1.x Q1.y Q1.z |   
+                | B.x B.y B.z | = f * | -uv2.x uv1.x | * | Q2.x Q2.y Q2.z |
+            for f = 1 / (uv1.x * uv2.y - uv2.x * uv1.y)
+        */
+        
+        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+        glm::vec3 tangent, bitangent;
+        tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+        tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+        tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+        bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+        bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+        bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+
+        tangents.push_back(tangent);
+        tangents.push_back(tangent);
+        tangents.push_back(tangent);
+        bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
+    }
+
     printf("Loaded indexed mesh from .obj file at: %s\n", path);
 
-    return GenerateMeshIndexed(finalVertices.data(), finalVertices.size(), finalIndices.data(), finalIndices.size(), finalUVs.data(), finalUVs.size(), finalNormals.data(), finalNormals.size());
+    MeshIndexed result = GenerateMeshIndexed(finalVertices, finalIndices, finalUVs, finalNormals, tangents, bitangents);
+    result.vertices = finalVertices;
+    result.normals = finalNormals;
+    result.tangents = tangents;
+    result.bitangents = bitangents;
+    return result;
 }

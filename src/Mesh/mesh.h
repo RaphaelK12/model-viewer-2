@@ -1,5 +1,7 @@
 #pragma once
+#include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <vector>
 
 struct Mesh
 {
@@ -12,9 +14,15 @@ struct Mesh
 struct MeshIndexed
 {
     unsigned int VAO;
-    unsigned int VBO[3];
+    unsigned int VBO[5];
     unsigned int EBO;
     unsigned int numVertices;
+
+    // TEMP
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec3> normals;
+    std::vector<glm::vec3> tangents;
+    std::vector<glm::vec3> bitangents;
 
     unsigned int diffuseIndex;
 };
@@ -27,9 +35,10 @@ struct Entity
 };
 
 void Draw(Mesh& mesh);
+void DrawLines(Mesh& mesh);
 void Draw(MeshIndexed& mesh);
 
-MeshIndexed GenerateMeshIndexed(float* vertices, size_t numVertices, unsigned int* indices, size_t numIndices, float* uvs, size_t numUVs, float* normals, size_t numNormals);
+MeshIndexed GenerateMeshIndexed(std::vector<glm::vec3>& vertices, std::vector<unsigned int>& indices, std::vector<glm::vec2>& uvs, std::vector<glm::vec3>& normals, std::vector<glm::vec3>& tangents, std::vector<glm::vec3>& bitangents);
 
 Mesh GenerateCube();
 Mesh GenerateAxes();
