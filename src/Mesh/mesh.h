@@ -6,10 +6,15 @@
 struct Mesh
 {
     unsigned int VAO;
-    unsigned int VBO;
+    unsigned int VBO[5];
     unsigned int numVertices;
-};
 
+    // TEMP
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec3> normals;
+    std::vector<glm::vec3> tangents;
+    std::vector<glm::vec3> bitangents;
+};
 
 struct MeshIndexed
 {
@@ -23,8 +28,6 @@ struct MeshIndexed
     std::vector<glm::vec3> normals;
     std::vector<glm::vec3> tangents;
     std::vector<glm::vec3> bitangents;
-
-    unsigned int diffuseIndex;
 };
 
 struct Entity
@@ -38,6 +41,7 @@ void Draw(Mesh& mesh);
 void DrawLines(Mesh& mesh);
 void Draw(MeshIndexed& mesh);
 
+Mesh GenerateMesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec2>& uvs, std::vector<glm::vec3>& normals, std::vector<glm::vec3>& tangents, std::vector<glm::vec3>& bitangents);
 MeshIndexed GenerateMeshIndexed(std::vector<glm::vec3>& vertices, std::vector<unsigned int>& indices, std::vector<glm::vec2>& uvs, std::vector<glm::vec3>& normals, std::vector<glm::vec3>& tangents, std::vector<glm::vec3>& bitangents);
 
 Mesh GenerateCube();

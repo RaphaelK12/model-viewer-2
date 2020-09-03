@@ -36,10 +36,19 @@ int main()
     std::vector<Model> models;
     models.push_back
     ({
-        LoadMeshIndexedFromOBJ("res/models/commode.obj"),
+        LoadMeshFromOBJ("res/models/commode.obj"),
         LoadTextureFromFile("res/textures/commode-diffuse.png"),
         LoadTextureFromFile("res/textures/commode-normal.png"),
+        LoadTextureFromFile("res/textures/commode-occ-rough-metal.png"),
         std::string("Lantern")
+    });
+    models.push_back
+    ({
+        LoadMeshFromOBJ("res/models/sofa.obj"),
+        LoadTextureFromFile("res/textures/sofa-diffuse.png"),
+        LoadTextureFromFile("res/textures/sofa-normal.png"),
+        LoadTextureFromFile("res/textures/sofa-occ-rough-metal.png"),
+        std::string("Sofa")
     });
     std::vector<const char*> modelNames;
     for(auto& m : models)
@@ -98,42 +107,8 @@ int main()
         // Render the mesh
         UniformInt(shader, "diffuseMap", models[currentModel].diffuse.index);
         UniformInt(shader, "normalMap", models[currentModel].normal.index);
+        UniformInt(shader, "specularMap", models[currentModel].specular.index);
         Draw(models[currentModel].mesh);
-
-        // TEMP
-        glMatrixMode(GL_PROJECTION);
-        glLoadMatrixf((const GLfloat*)&projection[0]);
-        glMatrixMode(GL_MODELVIEW);
-        glm::mat4 MV = view * model;
-        glLoadMatrixf((const GLfloat*)&MV[0]);
-
-        glUseProgram(0);
-        glBegin(GL_LINES);
-        for(int i = 0; i < models[currentModel].mesh.vertices.size(); i++)
-        {
-            // Normals
-            glColor3f(0, 0, 1);
-            glm::vec3 p = models[currentModel].mesh.vertices[i];
-            glm::vec3 o = glm::normalize(models[currentModel].mesh.normals[i]);
-            o = p + o * 0.1f;
-            glVertex3fv(&p.x);
-            glVertex3fv(&o.x);
-
-            // Tangents
-            glColor3f(1, 0, 0);
-            glm::vec3 t = glm::normalize(models[currentModel].mesh.tangents[i]);
-            t = p + t * 0.1f;
-            glVertex3fv(&p.x);
-            glVertex3fv(&t.x);
-           
-            // Bitangents
-            glColor3f(0, 1, 0);
-            glm::vec3 bt = glm::normalize(models[currentModel].mesh.bitangents[i]);
-            bt = p + t * 0.1f;
-            glVertex3fv(&p.x);
-            glVertex3fv(&bt.x);
-        }
-        glEnd();
 
         // Switch to light shader for lightcube rendering
         UseShader(lightShader);

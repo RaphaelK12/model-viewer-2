@@ -3,8 +3,9 @@
 
 struct Model
 {
-    MeshIndexed mesh;
+    Mesh mesh;
     Texture diffuse;
     Texture normal;
+    Texture specular;
     std::string name;
 };

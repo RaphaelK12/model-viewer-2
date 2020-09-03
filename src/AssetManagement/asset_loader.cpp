@@ -343,3 +343,150 @@ MeshIndexed LoadMeshIndexedFromOBJ(const char* path)
     result.bitangents = bitangents;
     return result;
 }
+
+Mesh LoadMeshFromOBJ(const char* path)
+{
+    FILE* objRaw = fopen(path, "r");
+    if(!objRaw)
+    {
+        printf("Failed to open OBJ file at path: %s\n", path);
+        exit(-1);
+    }
+
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec2> uvs;
+    std::vector<glm::vec3> normals;
+
+    std::vector<unsigned int> vertexIndices;
+    std::vector<unsigned int> textureIndices;
+    std::vector<unsigned int> normalIndices;
+
+    std::map<std::vector<int>, int> indexMap;
+
+    char buffer[100];
+    while(fscanf(objRaw, "%s ", buffer) != EOF)
+    {
+        buffer[strlen(buffer)] = '\0';
+        if(!strcmp(buffer, "v"))
+        {
+            float x, y, z;
+            if(fscanf(objRaw, "%f %f %f\n", &x, &y, &z) == EOF)
+                printf("Invalid format detected in OBJ file!\n");
+
+            vertices.emplace_back(x, y, z);
+        }
+        else if(!strcmp(buffer, "vt"))
+        {
+            float u, v;
+            if(fscanf(objRaw, "%f %f\n", &u, &v) == EOF)
+                printf("Invalid format detected in OBJ file!\n");
+
+            uvs.emplace_back(u, v);
+        }
+        else if(!strcmp(buffer, "vn"))
+        {
+            float x, y, z;
+            if(fscanf(objRaw, "%f %f %f\n", &x, &y, &z) == EOF)
+                printf("Invalid format detected in OBJ file!\n");
+
+            normals.emplace_back(x, y, z);
+        }
+        else if(!strcmp(buffer, "f"))
+        {
+            int v1, v2, v3, t1, t2, t3, n1, n2, n3;
+            if(fscanf(objRaw, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &v1, &t1, &n1, &v2, &t2, &n2, &v3, &t3, &n3) == EOF)
+                printf("Invalid format detected in OBJ file!\n");
+
+            vertexIndices.push_back(v1 - 1);
+            vertexIndices.push_back(v2 - 1);
+            vertexIndices.push_back(v3 - 1);
+
+            textureIndices.push_back(t1 - 1);
+            textureIndices.push_back(t2 - 1);
+            textureIndices.push_back(t3 - 1);
+
+            normalIndices.push_back(n1 - 1);
+            normalIndices.push_back(n2 - 1);
+            normalIndices.push_back(n3 - 1);
+        }
+    }
+
+    fclose(objRaw);
+
+    // A big thank you to this answer for the algorithm.
+    // https://stackoverflow.com/a/23356738
+    std::vector<glm::vec3> finalVertices;
+    std::vector<glm::vec2> finalUVs;
+    std::vector<glm::vec3> finalNormals;
+    std::vector<unsigned int> finalIndices;
+
+    for(size_t i = 0; i < vertexIndices.size(); i++)
+    {
+        int vindex = vertexIndices[i];
+        int uvindex = textureIndices[i];
+        int nindex = normalIndices[i];
+        
+        finalVertices.push_back(vertices[vindex]);
+        finalUVs.push_back(uvs[uvindex]);
+        finalNormals.push_back(normals[nindex]);
+    }
+
+    std::vector<glm::vec3> tangents;
+    std::vector<glm::vec3> bitangents;
+    for(size_t i = 0; i < finalVertices.size() - 2; i += 3)
+    {
+        glm::vec3& P1 = finalVertices[i];
+        glm::vec3& P2 = finalVertices[i + 1];
+        glm::vec3& P3 = finalVertices[i + 2];
+
+        // Calculate tangent and bitangent vectors
+        glm::vec2& uv1 = finalUVs[i + 0];
+        glm::vec2& uv2 = finalUVs[i + 1];
+        glm::vec2& uv3 = finalUVs[i + 2];
+
+        glm::vec3 edge1 = P2 - P1;
+        glm::vec3 edge2 = P3 - P1;
+        glm::vec2 deltaUV1 = uv2 - uv1;
+        glm::vec2 deltaUV2 = uv3 - uv1;
+
+        /*  Resolve the following:
+                Q1 = uv1.x * T + uv1.y * B
+                Q2 = uv2.x * T + uv2.y * B
+
+            Rewrite as a matrix multiplication:
+                | Q1.x Q1.y Q1.z |   | uv1.x uv1.y |   | T.x T.y T.z |
+                | Q2.x Q2.y Q2.z | = | uv2.x uv2.y | * | B.x B.y B.z |
+
+            Multiply both sides with inverse uv matrix
+                | T.x T.y T.z |       | uv2.y -uv1.y |   | Q1.x Q1.y Q1.z |
+                | B.x B.y B.z | = f * | -uv2.x uv1.x | * | Q2.x Q2.y Q2.z |
+            for f = 1 / (uv1.x * uv2.y - uv2.x * uv1.y)
+        */
+
+        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+        glm::vec3 tangent, bitangent;
+        tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+        tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+        tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+        bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+        bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+        bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+
+        tangents.push_back(tangent);
+        tangents.push_back(tangent);
+        tangents.push_back(tangent);
+        bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
+    }
+
+    printf("Loaded indexed mesh from .obj file at: %s\n", path);
+
+    Mesh result = GenerateMesh(finalVertices, finalUVs, finalNormals, tangents, bitangents);
+    result.vertices = finalVertices;
+    result.normals = finalNormals;
+    result.tangents = tangents;
+    result.bitangents = bitangents;
+    return result;
+}
