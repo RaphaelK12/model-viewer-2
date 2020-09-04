@@ -337,10 +337,7 @@ MeshIndexed LoadMeshIndexedFromOBJ(const char* path)
     printf("Loaded indexed mesh from .obj file at: %s\n", path);
 
     MeshIndexed result = GenerateMeshIndexed(finalVertices, finalIndices, finalUVs, finalNormals, tangents, bitangents);
-    result.vertices = finalVertices;
-    result.normals = finalNormals;
-    result.tangents = tangents;
-    result.bitangents = bitangents;
+    strcpy(result.name, path);
     return result;
 }
 
@@ -484,9 +481,6 @@ Mesh LoadMeshFromOBJ(const char* path)
     printf("Loaded indexed mesh from .obj file at: %s\n", path);
 
     Mesh result = GenerateMesh(finalVertices, finalUVs, finalNormals, tangents, bitangents);
-    result.vertices = finalVertices;
-    result.normals = finalNormals;
-    result.tangents = tangents;
-    result.bitangents = bitangents;
+    strcpy(result.name, path);
     return result;
 }

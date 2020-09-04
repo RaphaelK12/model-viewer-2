@@ -40,11 +40,17 @@ int main()
         LoadTextureFromFile("res/textures/lantern-diffuse.png"),
         LoadTextureFromFile("res/textures/lantern-normal.png"),
         LoadTextureFromFile("res/textures/lantern-occ-rough-metal.png"),
-        std::string("Lantern")
+    });
+    models.push_back
+    ({
+        LoadMeshFromOBJ("res/models/sofa_02.obj"),
+        LoadTextureFromFile("res/textures/sofa-diffuse.png"),
+        LoadTextureFromFile("res/textures/sofa-normal.png"),
+        LoadTextureFromFile("res/textures/sofa-occ-rough-metal.png"),
     });
     std::vector<const char*> modelNames;
     for(auto& m : models)
-        modelNames.push_back(m.name.c_str());
+        modelNames.push_back(m.mesh.name);
 
     Entity entity = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f) };
 
@@ -114,25 +120,6 @@ int main()
 
         if(axes)
         {
-            glMatrixMode(GL_PROJECTION);
-            glLoadMatrixf((const GLfloat*)&projection[0]);
-            glMatrixMode(GL_MODELVIEW);
-            glm::mat4 MV = view * model;
-            glLoadMatrixf((const GLfloat*)&MV[0]);
-
-            glUseProgram(0);
-            glBegin(GL_LINES);
-            for(int i = 0; i < models[currentModel].mesh.vertices.size(); i++)
-            {
-                glColor3f(0, 0, 1);
-                glm::vec3 p = models[currentModel].mesh.vertices[i];
-                glVertex3fv(&p.x);
-                glm::vec3 o = glm::normalize(models[currentModel].mesh.normals[i]);
-                p += o * 0.1f;
-                glVertex3fv(&p.x);
-            }
-            glEnd();
-
             glDisable(GL_DEPTH_TEST);
             UseShader(debugShader);
             

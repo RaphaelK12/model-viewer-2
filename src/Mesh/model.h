@@ -7,5 +7,4 @@ struct Model
     Texture diffuse;
     Texture normal;
     Texture specular;
-    std::string name;
 };

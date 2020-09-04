@@ -5,29 +5,19 @@
 
 struct Mesh
 {
+    char name[128];
     unsigned int VAO;
     unsigned int VBO[5];
     unsigned int numVertices;
-
-    // TEMP
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec3> normals;
-    std::vector<glm::vec3> tangents;
-    std::vector<glm::vec3> bitangents;
 };
 
 struct MeshIndexed
 {
+    char name[128];
     unsigned int VAO;
     unsigned int VBO[5];
     unsigned int EBO;
     unsigned int numVertices;
-
-    // TEMP
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec3> normals;
-    std::vector<glm::vec3> tangents;
-    std::vector<glm::vec3> bitangents;
 };
 
 struct Entity
