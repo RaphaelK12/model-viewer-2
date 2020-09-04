@@ -36,19 +36,11 @@ int main()
     std::vector<Model> models;
     models.push_back
     ({
-        LoadMeshFromOBJ("res/models/commode.obj"),
-        LoadTextureFromFile("res/textures/commode-diffuse.png"),
-        LoadTextureFromFile("res/textures/commode-normal.png"),
-        LoadTextureFromFile("res/textures/commode-occ-rough-metal.png"),
+        LoadMeshFromOBJ("res/models/Lantern_01.obj"),
+        LoadTextureFromFile("res/textures/lantern-diffuse.png"),
+        LoadTextureFromFile("res/textures/lantern-normal.png"),
+        LoadTextureFromFile("res/textures/lantern-occ-rough-metal.png"),
         std::string("Lantern")
-    });
-    models.push_back
-    ({
-        LoadMeshFromOBJ("res/models/sofa.obj"),
-        LoadTextureFromFile("res/textures/sofa-diffuse.png"),
-        LoadTextureFromFile("res/textures/sofa-normal.png"),
-        LoadTextureFromFile("res/textures/sofa-occ-rough-metal.png"),
-        std::string("Sofa")
     });
     std::vector<const char*> modelNames;
     for(auto& m : models)
@@ -118,11 +110,29 @@ int main()
         UniformMat4(lightShader, "model", model);
         UniformMat4(lightShader, "view", view);
         UniformMat4(lightShader, "projection", projection);
-
         Draw(lightMesh);
 
         if(axes)
         {
+            glMatrixMode(GL_PROJECTION);
+            glLoadMatrixf((const GLfloat*)&projection[0]);
+            glMatrixMode(GL_MODELVIEW);
+            glm::mat4 MV = view * model;
+            glLoadMatrixf((const GLfloat*)&MV[0]);
+
+            glUseProgram(0);
+            glBegin(GL_LINES);
+            for(int i = 0; i < models[currentModel].mesh.vertices.size(); i++)
+            {
+                glColor3f(0, 0, 1);
+                glm::vec3 p = models[currentModel].mesh.vertices[i];
+                glVertex3fv(&p.x);
+                glm::vec3 o = glm::normalize(models[currentModel].mesh.normals[i]);
+                p += o * 0.1f;
+                glVertex3fv(&p.x);
+            }
+            glEnd();
+
             glDisable(GL_DEPTH_TEST);
             UseShader(debugShader);
             
