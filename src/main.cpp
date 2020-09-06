@@ -1,12 +1,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <cstdio>
 #include "AssetManagement/asset_loader.h"
-#include "Mesh/model.h"
 #include "Display/display.h"
 #include "Camera/camera.h"
 #include <glm/gtc/matrix_transform.hpp>
-#include <vector>
 
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>

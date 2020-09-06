@@ -102,7 +102,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\dev\projects\model-viewer\thirdparty\imgui-1.78;C:\dev\projects\model-viewer\thirdparty\glm;C:\dev\projects\model-viewer\thirdparty\GLFW\include;C:\dev\projects\model-viewer\thirdparty\glad_compat\include;C:\dev\projects\model-viewer\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\dev\projects\model-viewer\thirdparty\imgui-1.78;C:\dev\projects\model-viewer\thirdparty\glm;C:\dev\projects\model-viewer\thirdparty\GLFW\include;C:\dev\projects\model-viewer\thirdparty\glad\include;C:\dev\projects\model-viewer\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -112,7 +112,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\dev\projects\model-viewer\thirdparty\imgui-1.78;C:\dev\projects\model-viewer\thirdparty\glm;C:\dev\projects\model-viewer\thirdparty\GLFW\include;C:\dev\projects\model-viewer\thirdparty\glad_compat\include;C:\dev\projects\model-viewer\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\dev\projects\model-viewer\thirdparty\imgui-1.78;C:\dev\projects\model-viewer\thirdparty\glm;C:\dev\projects\model-viewer\thirdparty\GLFW\include;C:\dev\projects\model-viewer\thirdparty\glad\include;C:\dev\projects\model-viewer\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Sync</ExceptionHandling>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
     </ClCompile>
@@ -127,8 +127,7 @@
     <ClCompile Include="src\display\display.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\mesh\mesh.cpp" />
-    <ClCompile Include="thirdparty\glad_compat\src\glad.c" />
-    <ClCompile Include="thirdparty\glm\glm\detail\glm.cpp" />
+    <ClCompile Include="thirdparty\glad\src\glad.c" />
     <ClCompile Include="thirdparty\imgui-1.78\imgui.cpp" />
     <ClCompile Include="thirdparty\imgui-1.78\imgui_draw.cpp" />
     <ClCompile Include="thirdparty\imgui-1.78\imgui_impl_glfw.cpp" />
@@ -141,9 +140,7 @@
     <ClInclude Include="src\assetmanagement\texture.h" />
     <ClInclude Include="src\camera\camera.h" />
     <ClInclude Include="src\display\display.h" />
-    <ClInclude Include="src\math\math.h" />
     <ClInclude Include="src\mesh\mesh.h" />
-    <ClInclude Include="src\mesh\model.h" />
     <ClInclude Include="thirdparty\glad\include\glad\glad.h" />
     <ClInclude Include="thirdparty\glad\include\khr\khrplatform.h" />
     <ClInclude Include="thirdparty\glfw\include\glfw\glfw3.h" />

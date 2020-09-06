@@ -30,9 +30,6 @@
     <ClCompile Include="src\mesh\mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="thirdparty\glm\glm\detail\glm.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="thirdparty\imgui-1.78\imgui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -45,10 +42,10 @@
     <ClCompile Include="thirdparty\imgui-1.78\imgui_impl_opengl3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="thirdparty\imgui-1.78\imgui_widgets.cpp">
+    <ClCompile Include="thirdparty\glad\src\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="thirdparty\glad_compat\src\glad.c">
+    <ClCompile Include="thirdparty\imgui-1.78\imgui_widgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -68,13 +65,7 @@
     <ClInclude Include="src\display\display.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\math\math.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\mesh\mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\mesh\model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="thirdparty\stb_image.h">
