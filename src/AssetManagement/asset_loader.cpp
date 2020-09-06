@@ -2,7 +2,6 @@
 #include <glad/glad.h>
 #include <glm/vec3.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 Shader LoadShadersFromFiles(const char* vertexShaderPath, const char* fragmentShaderPath)
