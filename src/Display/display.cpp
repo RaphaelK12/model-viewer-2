@@ -18,7 +18,7 @@ Display CreateDisplay(int width, int height, const char* title)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
-	GLFWwindow* window = glfwCreateWindow(width, height, "2D Platformer", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(width, height, title, nullptr, nullptr);
 	if(window == nullptr)
 	{
 		printf("Failed to create GLFW window\n");
