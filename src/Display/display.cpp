@@ -1,13 +1,16 @@
 #include "display.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
 #include <cmath>
+#include "../Math/transform.h"
 #include "../Camera/camera.h"
+
+// TEMP
+#include <glm/gtc/matrix_transform.hpp>
 
 Display CreateDisplay(int width, int height, const char* title)
 {
@@ -98,9 +101,9 @@ void ProcessInput(Display& display, Camera& camera, bool rotating, bool& shouldR
 		if(camera.pitch < -89.0f)
 			camera.pitch = -89.0f;
 
-		camera.forward.x = cos(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
-		camera.forward.y = sin(glm::radians(camera.pitch));
-		camera.forward.z = sin(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
+		camera.forward.x = cos(Radians(camera.yaw)) * cos(Radians(camera.pitch));
+		camera.forward.y = sin(Radians(camera.pitch));
+		camera.forward.z = sin(Radians(camera.yaw)) * cos(Radians(camera.pitch));
 		camera.forward = glm::normalize(camera.forward);
 		camera.position = -camera.forward * camera.cameraDistance;
 

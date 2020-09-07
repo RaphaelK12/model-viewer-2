@@ -1,6 +1,6 @@
 #include "asset_loader.h"
 #include <glad/glad.h>
-#include <glm/vec3.hpp>
+#include "../Math/vec3.h"
 
 #include <stb_image.h>
 
@@ -188,9 +188,9 @@ Mesh LoadMeshFromOBJ(const char* path)
         exit(-1);
     }
 
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec2> uvs;
-    std::vector<glm::vec3> normals;
+    std::vector<Vec3f> vertices;
+    std::vector<Vec2f> uvs;
+    std::vector<Vec3f> normals;
 
     std::vector<unsigned int> vertexIndices;
     std::vector<unsigned int> textureIndices;
@@ -246,11 +246,9 @@ Mesh LoadMeshFromOBJ(const char* path)
 
     fclose(objRaw);
 
-    // A big thank you to this answer for the algorithm.
-    // https://stackoverflow.com/a/23356738
-    std::vector<glm::vec3> finalVertices;
-    std::vector<glm::vec2> finalUVs;
-    std::vector<glm::vec3> finalNormals;
+    std::vector<Vec3f> finalVertices;
+    std::vector<Vec2f> finalUVs;
+    std::vector<Vec3f> finalNormals;
     std::vector<unsigned int> finalIndices;
 
     for(size_t i = 0; i < vertexIndices.size(); i++)
@@ -264,23 +262,23 @@ Mesh LoadMeshFromOBJ(const char* path)
         finalNormals.push_back(normals[nindex]);
     }
 
-    std::vector<glm::vec3> tangents;
-    std::vector<glm::vec3> bitangents;
+    std::vector<Vec3f> tangents;
+    std::vector<Vec3f> bitangents;
     for(size_t i = 0; i < finalVertices.size() - 2; i += 3)
     {
-        glm::vec3& P1 = finalVertices[i];
-        glm::vec3& P2 = finalVertices[i + 1];
-        glm::vec3& P3 = finalVertices[i + 2];
+        Vec3f& P1 = finalVertices[i];
+        Vec3f& P2 = finalVertices[i + 1];
+        Vec3f& P3 = finalVertices[i + 2];
 
         // Calculate tangent and bitangent vectors
-        glm::vec2& uv1 = finalUVs[i + 0];
-        glm::vec2& uv2 = finalUVs[i + 1];
-        glm::vec2& uv3 = finalUVs[i + 2];
+        Vec2f& uv1 = finalUVs[i + 0];
+        Vec2f& uv2 = finalUVs[i + 1];
+        Vec2f& uv3 = finalUVs[i + 2];
 
-        glm::vec3 edge1 = P2 - P1;
-        glm::vec3 edge2 = P3 - P1;
-        glm::vec2 deltaUV1 = uv2 - uv1;
-        glm::vec2 deltaUV2 = uv3 - uv1;
+        Vec3f edge1 = P2 - P1;
+        Vec3f edge2 = P3 - P1;
+        Vec2f deltaUV1 = uv2 - uv1;
+        Vec2f deltaUV2 = uv3 - uv1;
 
         /*  Resolve the following:
                 Q1 = uv1.x * T + uv1.y * B
@@ -298,7 +296,7 @@ Mesh LoadMeshFromOBJ(const char* path)
 
         float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
 
-        glm::vec3 tangent, bitangent;
+        Vec3f tangent, bitangent;
         tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
         tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
         tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);

@@ -1,7 +1,10 @@
 #pragma once
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
+#include "../Math/vec3.h"
+#include "../Math/vec2.h"
 #include <vector>
+
+// TEMP
+#include <glm/vec3.hpp>
 
 struct Mesh
 {
@@ -31,8 +34,8 @@ void Draw(Mesh& mesh);
 void DrawLines(Mesh& mesh);
 void Draw(MeshIndexed& mesh);
 
-Mesh GenerateMesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec2>& uvs, std::vector<glm::vec3>& normals, std::vector<glm::vec3>& tangents, std::vector<glm::vec3>& bitangents);
-MeshIndexed GenerateMeshIndexed(std::vector<glm::vec3>& vertices, std::vector<unsigned int>& indices, std::vector<glm::vec2>& uvs, std::vector<glm::vec3>& normals, std::vector<glm::vec3>& tangents, std::vector<glm::vec3>& bitangents);
+Mesh GenerateMesh(std::vector<Vec3f>& vertices, std::vector<Vec2f>& uvs, std::vector<Vec3f>& normals, std::vector<Vec3f>& tangents, std::vector<Vec3f>& bitangents);
+MeshIndexed GenerateMeshIndexed(std::vector<Vec3f>& vertices, std::vector<unsigned int>& indices, std::vector<Vec2f>& uvs, std::vector<Vec3f>& normals, std::vector<Vec3f>& tangents, std::vector<Vec3f>& bitangents);
 
 Mesh GenerateCube();
 Mesh GenerateAxes();
