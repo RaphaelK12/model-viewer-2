@@ -1,6 +1,4 @@
 #pragma once
-#include "../Math/vec3.h"
-// TEMP
 #include <glm/vec3.hpp>
 
 struct Camera

@@ -3,14 +3,11 @@
 #include "AssetManagement/asset_loader.h"
 #include "Display/display.h"
 #include "Camera/camera.h"
-#include "Math/transform.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_glfw.h>
-
-// TEMP
-#include <glm/gtc/matrix_transform.hpp>
 
 int Texture::GlobalTextureIndex = 0;
 
@@ -62,9 +59,8 @@ int main()
     Mesh debugAxes = GenerateAxes();
     Shader debugShader = LoadShadersFromFiles("res/shaders/debug/debug.vert", "res/shaders/debug/debug.frag");
 
-    glm::mat4 projection = glm::perspective(Radians(45.0f), (float)WIDTH / HEIGHT, 0.1f, 1000.0f);
-    //UniformMat4(shader, "projection", projection);
-    glUniformMatrix4fv(shader.uniformLocations["projection"], 1, GL_FALSE, &projection[0].x);
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / HEIGHT, 0.1f, 1000.0f);
+    UniformMat4(shader, "projection", projection);
 
     // Camera info
     bool shouldReset = false;
@@ -85,25 +81,21 @@ int main()
             ProcessInput(display, camera, rotating, shouldReset);
 
         UseShader(shader);
-        //UniformVec3(shader, "pointLightPos", lightPos);
-        //UniformVec3(shader, "cameraPos", camera.position);
-        glUniform3fv(shader.uniformLocations["lightPos"], 1, &lightPos[0]);
-        glUniform3fv(shader.uniformLocations["cameraPos"], 1, &camera.position[0]);
+        UniformVec3(shader, "pointLightPos", lightPos);
+        UniformVec3(shader, "cameraPos", camera.position);
 
         // Transform matrix for mesh
         glm::mat4 model(1.0f);
         model = glm::translate(model, entity.position);
-        model = glm::rotate(model, Radians(entity.rotation.x), { 1.0f, 0.0f, 0.0f });
-        model = glm::rotate(model, Radians(entity.rotation.y), { 0.0f, 1.0f, 0.0f });
-        model = glm::rotate(model, Radians(entity.rotation.z), { 0.0f, 0.0f, 1.0f });
+        model = glm::rotate(model, glm::radians(entity.rotation.x), {1.0f, 0.0f, 0.0f});
+        model = glm::rotate(model, glm::radians(entity.rotation.y), {0.0f, 1.0f, 0.0f});
+        model = glm::rotate(model, glm::radians(entity.rotation.z), {0.0f, 0.0f, 1.0f});
         model = glm::scale(model, entity.scale);
-        glUniformMatrix4fv(shader.uniformLocations["model"], 1, GL_FALSE, &model[0].x);
-        //UniformMat4(shader, "model", model);
+        UniformMat4(shader, "model", model);
 
         // Transform matrix for camera
         glm::mat4 view = glm::lookAt(camera.position, camera.position + camera.forward, camera.up);
-        //UniformMat4(shader, "view", view);
-        glUniformMatrix4fv(shader.uniformLocations["view"], 1, GL_FALSE, &view[0].x);
+        UniformMat4(shader, "view", view);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -118,12 +110,9 @@ int main()
         model = glm::mat4(1.0);
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f));
-        //UniformMat4(lightShader, "model", model);
-        glUniformMatrix4fv(shader.uniformLocations["projection"], 1, GL_FALSE, &projection[0].x);
-        glUniformMatrix4fv(shader.uniformLocations["view"], 1, GL_FALSE, &view[0].x);
-        glUniformMatrix4fv(shader.uniformLocations["model"], 1, GL_FALSE, &model[0].x);
-        //UniformMat4(lightShader, "view", view);
-        //UniformMat4(lightShader, "projection", projection);
+        UniformMat4(lightShader, "model", model);
+        UniformMat4(lightShader, "view", view);
+        UniformMat4(lightShader, "projection", projection);
         Draw(lightMesh);
 
         if(axes)
@@ -135,8 +124,7 @@ int main()
             debugModel = glm::scale(debugModel, { 10.0f, 10.0f, 10.0f });
 
             glm::mat4 MVP = projection * view * debugModel;
-            //UniformMat4(debugShader, "MVP", MVP);
-            glUniformMatrix4fv(shader.uniformLocations["MVP"], 1, GL_FALSE, &MVP[0].x);
+            UniformMat4(debugShader, "MVP", MVP);
 
             DrawLines(debugAxes);
 
