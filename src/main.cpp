@@ -72,7 +72,7 @@ int main()
     int currentModel = 0;
 
     // Point light info
-    glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
+    glm::vec3 lightPos(3.0f, 0.0f, 3.0f);
 
     while(!glfwWindowShouldClose(display.window))
     {

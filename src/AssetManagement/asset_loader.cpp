@@ -3,6 +3,7 @@
 #include <glm/vec3.hpp>
 
 #include <stb_image.h>
+#include <fstream>
 
 Shader LoadShadersFromFiles(const char* vertexShaderPath, const char* fragmentShaderPath)
 {
@@ -131,52 +132,103 @@ Shader LoadShadersFromFiles(const char* vertexShaderPath, const char* fragmentSh
 Texture LoadTextureFromFile(const char* path)
 {
     unsigned int index = Texture::GlobalTextureIndex++;
+    
+    GLuint ID;
+    int width, height, channels;
+    unsigned char* data = nullptr;
+    bool stb_free = false;
 
     // Load image from file
     stbi_set_flip_vertically_on_load(true);
 
-    int width, height, channels;
-    unsigned char* data = stbi_load(path, &width, &height, &channels, 0);
-    if(data)
+    std::string binPath(path);
+    binPath = binPath.substr(0, binPath.find_last_of('.')) + ".bin";
+    FILE* cachedFile = fopen(binPath.c_str(), "rb");
+    
+    // No cache file for texture exists. Load and save it
+    if(cachedFile == nullptr)
     {
-        GLuint ID;
-        glGenTextures(1, &ID);
-
-        glActiveTexture(GL_TEXTURE0 + index);
-        glBindTexture(GL_TEXTURE_2D, ID);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-        if(channels == 1)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
-        else if(channels == 2)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, width, height, 0, GL_RG, GL_UNSIGNED_BYTE, data);
-        else if(channels == 3)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        else if(channels == 4)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        else
+        data = stbi_load(path, &width, &height, &channels, 0);
+        if(data == nullptr)
         {
-            printf("Image loaded isn't in any of the supported formats!\n(Supported: RGB, RGBA)\n");
-            stbi_image_free(data);
-
-            glDeleteTextures(1, &ID);
+            printf("Failed to open texture at path: %s\n", path);
             exit(-1);
         }
 
-        glGenerateMipmap(ID);
+        // Make a cache
+        FILE* outFile = fopen(binPath.c_str(), "wb");
+        if(outFile == nullptr)
+        {
+            printf("Failed to create output binary file at path: %s\n", binPath.c_str());
+            exit(-1);
+        }
+        fprintf(outFile, "%d %d %d\n", width, height, channels);
+        fwrite(data, sizeof(unsigned char) * size_t(width * height * channels), 1, outFile);
 
-        printf("Loaded texture file at: %s\n", path);
-        stbi_image_free(data);
+        // Cleanup
+        fclose(outFile);
+        stb_free = true;
+    }
+    else // Cache file exists, load that instead
+    {
+        FILE* inFile = fopen(binPath.c_str(), "rb");
+        if(inFile == nullptr)
+        {
+            printf("Failed to open input binary file at path: %s\n", binPath.c_str());
+            exit(-1);
+        }
 
-        return { (unsigned int)width, (unsigned int)height, (unsigned int)channels, ID, index };
+        // Get image metadata
+        fscanf(inFile, "%d %d %d\n", &width, &height, &channels);
+
+        // Read remaining unsigned chars
+        size_t dataSize = width * height * channels;
+        data = new unsigned char[dataSize + 1];
+        fread(data, sizeof(unsigned char) * dataSize, 1, inFile);
+        data[dataSize] = '\0';
+
+        // Cleanup
+        fclose(inFile);
+        stb_free = false;
     }
 
-    printf("Failed to load texture from image at path: %s\n", path);
-    exit(-1);
+    glGenTextures(1, &ID);
+
+    glActiveTexture(GL_TEXTURE0 + index);
+    glBindTexture(GL_TEXTURE_2D, ID);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    if(channels == 1)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+    else if(channels == 2)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, width, height, 0, GL_RG, GL_UNSIGNED_BYTE, data);
+    else if(channels == 3)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    else if(channels == 4)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    else
+    {
+        printf("Image loaded isn't in any of the supported formats!\n(Supported: RGB, RGBA)\n");
+        stbi_image_free(data);
+
+        glDeleteTextures(1, &ID);
+        exit(-1);
+    }
+
+    glGenerateMipmap(ID);
+
+    if(data != nullptr)
+        if(stb_free)
+            stbi_image_free(data);
+        else
+            delete[] data;
+
+    printf("Loaded texture file at: %s\n", path);
+    return { (unsigned int)width, (unsigned int)height, (unsigned int)channels, ID, index };
 }
 
 Mesh LoadMeshFromOBJ(const char* path)

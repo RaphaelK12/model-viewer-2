@@ -37,9 +37,9 @@ Display CreateDisplay(int width, int height, const char* title)
 	glViewport(0, 0, width, height);
 	glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
+
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	//glEnable(GL_BLEND);
 
 	Display result { "", window, width, height, 0.0f, 0.0f, 0, 0.0f, 0.0, 0.0 };
 	strcpy(result.title, title);
