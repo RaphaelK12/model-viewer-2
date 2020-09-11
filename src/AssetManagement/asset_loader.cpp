@@ -3,11 +3,9 @@
 #include <glm/vec3.hpp>
 
 #include <stb_image.h>
-#include <fstream>
 
 Shader LoadShadersFromFiles(const char* vertexShaderPath, const char* fragmentShaderPath)
 {
-    // Load files into memory
     FILE* vsRaw = fopen(vertexShaderPath, "rb");
     if(!vsRaw)
     {
@@ -15,6 +13,7 @@ Shader LoadShadersFromFiles(const char* vertexShaderPath, const char* fragmentSh
         exit(-1);
     }
 
+    // Get file size
     fseek(vsRaw, 0, SEEK_END);
     size_t size = (size_t)ftell(vsRaw);
     rewind(vsRaw);
@@ -82,13 +81,13 @@ Shader LoadShadersFromFiles(const char* vertexShaderPath, const char* fragmentSh
 
     // Check the linking status
     int infoLength = 0;
-    glGetProgramiv(ID, GL_LINK_STATUS, &compiled);
     glGetProgramiv(ID, GL_INFO_LOG_LENGTH, &infoLength);
+    glGetProgramiv(ID, GL_LINK_STATUS, &compiled);
     if(infoLength > 0)
     {
-        std::vector<char> ProgramErrorMessage(infoLength + 1);
-        glGetProgramInfoLog(ID, infoLength, NULL, &ProgramErrorMessage[0]);
-        printf("%s\n", &ProgramErrorMessage[0]);
+        GLchar message[1024];
+        glGetProgramInfoLog(ID, infoLength, NULL, message);
+        printf("%s\n", message);
     }
 
     // Get uniform names and locations from program 
@@ -108,7 +107,6 @@ Shader LoadShadersFromFiles(const char* vertexShaderPath, const char* fragmentSh
         for(int i = 0; i < uniformCount; i++)
         {
             glGetActiveUniform(ID, i, maxNameLength, &length, &count, &type, buffer);
-
             uniforms[std::string(buffer, length)] = glGetUniformLocation(ID, buffer);
         }
 
@@ -131,16 +129,17 @@ Shader LoadShadersFromFiles(const char* vertexShaderPath, const char* fragmentSh
 
 Texture LoadTextureFromFile(const char* path)
 {
-    unsigned int index = Texture::GlobalTextureIndex++;
-    
+    // OpenGL textures start from lower left corner
+    stbi_set_flip_vertically_on_load(true); 
+
+    // Texture metadata
     GLuint ID;
     int width, height, channels;
     unsigned char* data = nullptr;
     bool stb_free = false;
+    unsigned int index = Texture::GlobalTextureIndex++;
 
-    // Load image from file
-    stbi_set_flip_vertically_on_load(true);
-
+    // The cached version's path
     std::string binPath(path);
     binPath = binPath.substr(0, binPath.find_last_of('.')) + ".bin";
     FILE* cachedFile = fopen(binPath.c_str(), "rb");
@@ -155,7 +154,7 @@ Texture LoadTextureFromFile(const char* path)
             exit(-1);
         }
 
-        // Make a cache
+        // Write the metadata and the actual image's data to the cache
         FILE* outFile = fopen(binPath.c_str(), "wb");
         if(outFile == nullptr)
         {
@@ -163,13 +162,14 @@ Texture LoadTextureFromFile(const char* path)
             exit(-1);
         }
         fprintf(outFile, "%d %d %d\n", width, height, channels);
-        fwrite(data, sizeof(unsigned char) * size_t(width * height * channels), 1, outFile);
+        fwrite(data, sizeof(unsigned char) * (size_t)width * height * channels, 1, outFile);
 
         // Cleanup
         fclose(outFile);
         stb_free = true;
     }
-    else // Cache file exists, load that instead
+    // Cache file exists, load that instead
+    else 
     {
         FILE* inFile = fopen(binPath.c_str(), "rb");
         if(inFile == nullptr)
@@ -179,10 +179,11 @@ Texture LoadTextureFromFile(const char* path)
         }
 
         // Get image metadata
-        fscanf(inFile, "%d %d %d\n", &width, &height, &channels);
+        if(fscanf(inFile, "%d %d %d\n", &width, &height, &channels) == EOF)
+            printf("Invalid image metadata contained in file: %s\n", binPath.c_str());
 
-        // Read remaining unsigned chars
-        size_t dataSize = width * height * channels;
+        // Get the image's actual data
+        size_t dataSize = (size_t)width * height * channels;
         data = new unsigned char[dataSize + 1];
         fread(data, sizeof(unsigned char) * dataSize, 1, inFile);
         data[dataSize] = '\0';
@@ -192,6 +193,7 @@ Texture LoadTextureFromFile(const char* path)
         stb_free = false;
     }
 
+    // Generate texture from loaded data
     glGenTextures(1, &ID);
 
     glActiveTexture(GL_TEXTURE0 + index);
@@ -199,8 +201,8 @@ Texture LoadTextureFromFile(const char* path)
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     if(channels == 1)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
@@ -222,10 +224,12 @@ Texture LoadTextureFromFile(const char* path)
     glGenerateMipmap(ID);
 
     if(data != nullptr)
+    {
         if(stb_free)
             stbi_image_free(data);
         else
             delete[] data;
+    }
 
     printf("Loaded texture file at: %s\n", path);
     return { (unsigned int)width, (unsigned int)height, (unsigned int)channels, ID, index };
@@ -369,6 +373,6 @@ Mesh LoadMeshFromOBJ(const char* path)
     printf("Loaded indexed mesh from .obj file at: %s\n", path);
 
     Mesh result = GenerateMesh(finalVertices, finalUVs, finalNormals, tangents, bitangents);
-    strcpy(result.name, path);
+    strncpy(result.name, path, strlen(path) + 1);
     return result;
 }
