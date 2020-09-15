@@ -35,4 +35,5 @@ Mesh GenerateMesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec2>& uvs,
 MeshIndexed GenerateMeshIndexed(std::vector<glm::vec3>& vertices, std::vector<unsigned int>& indices, std::vector<glm::vec2>& uvs, std::vector<glm::vec3>& normals, std::vector<glm::vec3>& tangents, std::vector<glm::vec3>& bitangents);
 
 Mesh GenerateCube();
+Mesh GenerateInvertedCube();
 Mesh GenerateAxes();

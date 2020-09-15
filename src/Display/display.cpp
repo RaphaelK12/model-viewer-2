@@ -89,8 +89,8 @@ void ProcessInput(Display& display, Camera& camera, bool rotating, bool& shouldR
 			return;
 		}
 
-		camera.yaw += (float)(xpos - display.mouseX);
-		camera.pitch += (float)(display.mouseY - ypos);
+		camera.yaw += 0.4f * (float)(xpos - display.mouseX);
+		camera.pitch += 0.4f * (float)(display.mouseY - ypos);
 
 		// Fixes able to look upside down
 		if(camera.pitch > 89.0f)

@@ -167,29 +167,23 @@ Texture LoadTextureFromFile(const char* path)
         // Cleanup
         fclose(outFile);
         stb_free = true;
+        printf("Created cache for image at path: %s\n", path);
     }
     // Cache file exists, load that instead
     else 
     {
-        FILE* inFile = fopen(binPath.c_str(), "rb");
-        if(inFile == nullptr)
-        {
-            printf("Failed to open input binary file at path: %s\n", binPath.c_str());
-            exit(-1);
-        }
-
         // Get image metadata
-        if(fscanf(inFile, "%d %d %d\n", &width, &height, &channels) == EOF)
+        if(fscanf(cachedFile, "%d %d %d\n", &width, &height, &channels) == EOF)
             printf("Invalid image metadata contained in file: %s\n", binPath.c_str());
 
         // Get the image's actual data
         size_t dataSize = (size_t)width * height * channels;
         data = new unsigned char[dataSize + 1];
-        fread(data, sizeof(unsigned char) * dataSize, 1, inFile);
+        fread(data, sizeof(unsigned char) * dataSize, 1, cachedFile);
         data[dataSize] = '\0';
 
         // Cleanup
-        fclose(inFile);
+        fclose(cachedFile);
         stb_free = false;
     }
 
@@ -233,6 +227,108 @@ Texture LoadTextureFromFile(const char* path)
 
     printf("Loaded texture file at: %s\n", path);
     return { (unsigned int)width, (unsigned int)height, (unsigned int)channels, ID, index };
+}
+
+Texture LoadCubemapFromFiles(const char* folderPath)
+{
+    stbi_set_flip_vertically_on_load(false);
+
+    std::string path;
+    int width, height, channels;
+    unsigned char* data;
+    bool stb_free = false;
+    unsigned int index = Texture::GlobalTextureIndex++;
+
+    std::string paths[]
+    {
+        "posx",
+        "negx",
+        "posy",
+        "negy",
+        "posz",
+        "negz"
+    };
+
+    GLuint ID;
+    glGenTextures(1, &ID);
+    glActiveTexture(GL_TEXTURE0 + index);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, ID);
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    for(unsigned int i = 0; i < 6; i++)
+    {
+        // The cached version's path
+        path = std::string(folderPath) + "/" + paths[i] + ".jpg";
+        std::string binPath = std::string(folderPath) + "/" + paths[i] + ".bin";
+        FILE* cachedFile = fopen(binPath.c_str(), "rb");
+
+        // No cache file for texture exists. Load and save it
+        if(cachedFile == nullptr)
+        {
+            data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+            if(data == nullptr)
+            {
+                printf("Failed to open texture at path: %s\n", path.c_str());
+                exit(-1);
+            }
+
+            // Write the metadata and the actual image's data to the cache
+            FILE* outFile = fopen(binPath.c_str(), "wb");
+            if(outFile == nullptr)
+            {
+                printf("Failed to create output binary file at path: %s\n", binPath.c_str());
+                exit(-1);
+            }
+            fprintf(outFile, "%d %d %d\n", width, height, channels);
+            fwrite(data, sizeof(unsigned char) * (size_t)width * height * channels, 1, outFile);
+
+            // Cleanup
+            fclose(outFile);
+            stb_free = true;
+            printf("Created cache for image at path: %s\n", path.c_str());
+        }
+        // Cache file exists, load that instead
+        else
+        {
+            // Get image metadata
+            if(fscanf(cachedFile, "%d %d %d\n", &width, &height, &channels) == EOF)
+                printf("Invalid image metadata contained in file: %s\n", binPath.c_str());
+
+            // Get the image's actual data
+            size_t dataSize = (size_t)width * height * channels;
+            data = new unsigned char[dataSize + 1];
+            fread(data, sizeof(unsigned char) * dataSize, 1, cachedFile);
+            data[dataSize] = '\0';
+
+            // Cleanup
+            fclose(cachedFile);
+            stb_free = false;
+        }
+
+        if(data == nullptr)
+        {
+            printf("Failed to load part of cubemap at path: %s\n", path.c_str());
+            exit(-1);
+        }
+
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+        if(data != nullptr)
+        {
+            if(stb_free)
+                stbi_image_free(data);
+            else
+                delete[] data;
+        }
+    }
+
+    printf("Loaded cubemap from folder: %s\n", folderPath);
+    return { (unsigned)width, (unsigned)height, (unsigned)channels, ID, index };
 }
 
 Mesh LoadMeshFromOBJ(const char* path)

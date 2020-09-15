@@ -51,6 +51,11 @@ int main()
 
     Entity entity = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f) };
 
+    // Load cubemap
+    Texture cubeMap = LoadCubemapFromFiles("res/cubemaps/Yokohama");
+    Mesh cubeMapMesh = GenerateInvertedCube();
+    Shader cubeMapShader = LoadShadersFromFiles("res/shaders/cubemap/cubemap.vert", "res/shaders/cubemap/cubemap.frag");
+
     // Load lightcube mesh
     Mesh lightMesh = GenerateCube();
     Shader lightShader = LoadShadersFromFiles("res/shaders/lightcube/lightcube.vert", "res/shaders/lightcube/lightcube.frag");
@@ -80,6 +85,21 @@ int main()
         if(!ImGui::GetIO().WantCaptureMouse)
             ProcessInput(display, camera, rotating, shouldReset);
 
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Transform matrix for camera
+        glm::mat4 view = glm::lookAt(camera.position, camera.position + camera.forward, camera.up);
+        glm::mat4 nonTranslatedView = glm::mat4(glm::mat3(view));
+
+        // Draw the cubemap before anything else
+        glDisable(GL_DEPTH_TEST);
+        UseShader(cubeMapShader);
+        UniformMat4(cubeMapShader, "view", nonTranslatedView);
+        UniformMat4(cubeMapShader, "projection", projection);
+        UniformInt(cubeMapShader, "cubemap", cubeMap.index);
+        Draw(cubeMapMesh);
+        glEnable(GL_DEPTH_TEST);
+
         UseShader(shader);
         UniformVec3(shader, "pointLightPos", lightPos);
         UniformVec3(shader, "cameraPos", camera.position);
@@ -92,12 +112,7 @@ int main()
         model = glm::rotate(model, glm::radians(entity.rotation.z), {0.0f, 0.0f, 1.0f});
         model = glm::scale(model, entity.scale);
         UniformMat4(shader, "model", model);
-
-        // Transform matrix for camera
-        glm::mat4 view = glm::lookAt(camera.position, camera.position + camera.forward, camera.up);
         UniformMat4(shader, "view", view);
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Render the mesh
         UniformInt(shader, "diffuseMap", models[currentModel].diffuse.index);

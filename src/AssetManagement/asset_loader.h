@@ -13,5 +13,6 @@ struct Model
 
 struct Shader LoadShadersFromFiles(const char* vertexShaderPath, const char* fragmentShaderPath);
 Texture LoadTextureFromFile(const char* path);
+Texture LoadCubemapFromFiles(const char* folderPath);
 Mesh LoadMeshFromOBJ(const char* path);
 MeshIndexed LoadMeshIndexedFromOBJ(const char* path);
