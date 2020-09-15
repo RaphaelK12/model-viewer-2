@@ -17,7 +17,6 @@ out vec2 uvs;
 out vec3 fragPos_tangentSpace;
 out vec3 lightPos_tangentSpace;
 out vec3 viewPos_tangentSpace;
-out mat3 TBN;
 
 void main()
 {

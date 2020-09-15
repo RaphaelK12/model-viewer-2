@@ -91,15 +91,6 @@ int main()
         glm::mat4 view = glm::lookAt(camera.position, camera.position + camera.forward, camera.up);
         glm::mat4 nonTranslatedView = glm::mat4(glm::mat3(view));
 
-        // Draw the cubemap before anything else
-        glDisable(GL_DEPTH_TEST);
-        UseShader(cubeMapShader);
-        UniformMat4(cubeMapShader, "view", nonTranslatedView);
-        UniformMat4(cubeMapShader, "projection", projection);
-        UniformInt(cubeMapShader, "cubemap", cubeMap.index);
-        Draw(cubeMapMesh);
-        glEnable(GL_DEPTH_TEST);
-
         UseShader(shader);
         UniformVec3(shader, "pointLightPos", lightPos);
         UniformVec3(shader, "cameraPos", camera.position);
@@ -118,6 +109,7 @@ int main()
         UniformInt(shader, "diffuseMap", models[currentModel].diffuse.index);
         UniformInt(shader, "normalMap", models[currentModel].normal.index);
         UniformInt(shader, "specularMap", models[currentModel].specular.index);
+        UniformInt(shader, "cubemap", cubeMap.index);
         Draw(models[currentModel].mesh);
 
         // Switch to light shader for lightcube rendering
@@ -145,6 +137,13 @@ int main()
 
             glEnable(GL_DEPTH_TEST);
         }
+
+        // Draw the cubemap after anything else
+        UseShader(cubeMapShader);
+        UniformMat4(cubeMapShader, "view", nonTranslatedView);
+        UniformMat4(cubeMapShader, "projection", projection);
+        UniformInt(cubeMapShader, "cubemap", cubeMap.index);
+        Draw(cubeMapMesh);
 
         // Start ImGui frame and render the window
         ImGui_ImplOpenGL3_NewFrame();
