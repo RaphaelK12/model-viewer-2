@@ -43,7 +43,7 @@ Display CreateDisplay(int width, int height, const char* title)
 	glCullFace(GL_BACK);
 
 	Display result { "", window, width, height, 0.0f, 0.0f, 0, 0.0f, 0.0, 0.0 };
-	strncpy(result.title, title, strlen(title) + 1);
+	strncpy(result.title, title, 511);
 	return result;
 }
 

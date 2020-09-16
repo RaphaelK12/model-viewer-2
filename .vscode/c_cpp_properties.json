@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/thirdparty/stb_image",
+                "${workspaceFolder}/thirdparty/GLFW/include",
+                "${workspaceFolder}/thirdparty/imgui-1.78",
+                "${workspaceFolder}/thirdparty/glm",
+                "${workspaceFolder}/thirdparty/glad/include"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}

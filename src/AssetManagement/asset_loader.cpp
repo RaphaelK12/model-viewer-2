@@ -1,4 +1,5 @@
 #include "asset_loader.h"
+#include <cstring>
 #include <glad/glad.h>
 #include <glm/vec3.hpp>
 
@@ -226,7 +227,7 @@ Texture LoadTextureFromFile(const char* path)
     }
 
     printf("Loaded texture file at: %s\n", path);
-    return { (unsigned int)width, (unsigned int)height, (unsigned int)channels, ID, index };
+    return { (unsigned int)width, (unsigned int)height, (unsigned int)channels, ID, index, std::string("") };
 }
 
 Texture LoadCubemapFromFiles(const char* folderPath)
@@ -469,6 +470,6 @@ Mesh LoadMeshFromOBJ(const char* path)
     printf("Loaded indexed mesh from .obj file at: %s\n", path);
 
     Mesh result = GenerateMesh(finalVertices, finalUVs, finalNormals, tangents, bitangents);
-    strncpy(result.name, path, strlen(path) + 1);
+    strncpy(result.name, path, 127);
     return result;
 }
