@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 struct Texture
 {
@@ -6,4 +7,6 @@ struct Texture
     unsigned int ID, index;
 
     static int GlobalTextureIndex;
+
+    std::string path;
 };

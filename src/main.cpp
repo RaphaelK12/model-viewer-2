@@ -52,9 +52,14 @@ int main()
     Entity entity = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f) };
 
     // Load cubemap
-    Texture cubeMap = LoadCubemapFromFiles("res/cubemaps/Yokohama");
+    std::vector<Texture> cubemaps;
+    cubemaps.push_back(LoadCubemapFromFiles("res/cubemaps/Yokohama"));
     Mesh cubeMapMesh = GenerateInvertedCube();
     Shader cubeMapShader = LoadShadersFromFiles("res/shaders/cubemap/cubemap.vert", "res/shaders/cubemap/cubemap.frag");
+
+    std::vector<const char*> cubemapNames;
+    for(auto& c : cubemaps)
+        cubemapNames.push_back(c.path.c_str());
 
     // Load lightcube mesh
     Mesh lightMesh = GenerateCube();
@@ -75,6 +80,7 @@ int main()
     bool rotating = false;
     bool axes = false;
     int currentModel = 0;
+    int currentCubemap = 0;
 
     // Point light info
     glm::vec3 lightPos(3.0f, 0.0f, 3.0f);
@@ -109,7 +115,6 @@ int main()
         UniformInt(shader, "diffuseMap", models[currentModel].diffuse.index);
         UniformInt(shader, "normalMap", models[currentModel].normal.index);
         UniformInt(shader, "specularMap", models[currentModel].specular.index);
-        UniformInt(shader, "cubemap", cubeMap.index);
         Draw(models[currentModel].mesh);
 
         // Switch to light shader for lightcube rendering
@@ -122,11 +127,18 @@ int main()
         UniformMat4(lightShader, "projection", projection);
         Draw(lightMesh);
 
+        // Draw the cubemap after anything else
+        UseShader(cubeMapShader);
+        UniformMat4(cubeMapShader, "view", nonTranslatedView);
+        UniformMat4(cubeMapShader, "projection", projection);
+        UniformInt(cubeMapShader, "cubemap", cubemaps[currentCubemap].index);
+        Draw(cubeMapMesh);
+
         if(axes)
         {
             glDisable(GL_DEPTH_TEST);
             UseShader(debugShader);
-            
+
             glm::mat4 debugModel(1.0f);
             debugModel = glm::scale(debugModel, { 10.0f, 10.0f, 10.0f });
 
@@ -138,19 +150,13 @@ int main()
             glEnable(GL_DEPTH_TEST);
         }
 
-        // Draw the cubemap after anything else
-        UseShader(cubeMapShader);
-        UniformMat4(cubeMapShader, "view", nonTranslatedView);
-        UniformMat4(cubeMapShader, "projection", projection);
-        UniformInt(cubeMapShader, "cubemap", cubeMap.index);
-        Draw(cubeMapMesh);
-
         // Start ImGui frame and render the window
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         ImGui::Begin("Main Controls");
         ImGui::Combo("Select Model", &currentModel, modelNames.data(), (int)modelNames.size());
+        ImGui::Combo("Select Cubemap", &currentCubemap, cubemapNames.data(), (int)cubemapNames.size());
         ImGui::Checkbox("Show Debug Axes?", &axes);
         ImGui::Text("Model transform");
         ImGui::SliderFloat3("Model Translation", &entity.position.x, -1.0f, 1.0f);

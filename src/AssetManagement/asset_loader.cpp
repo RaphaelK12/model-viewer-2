@@ -328,7 +328,7 @@ Texture LoadCubemapFromFiles(const char* folderPath)
     }
 
     printf("Loaded cubemap from folder: %s\n", folderPath);
-    return { (unsigned)width, (unsigned)height, (unsigned)channels, ID, index };
+    return { (unsigned)width, (unsigned)height, (unsigned)channels, ID, index, std::string(folderPath) };
 }
 
 Mesh LoadMeshFromOBJ(const char* path)
