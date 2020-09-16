@@ -54,6 +54,7 @@ int main()
     // Load cubemap
     std::vector<Texture> cubemaps;
     cubemaps.push_back(LoadCubemapFromFiles("res/cubemaps/Yokohama"));
+    cubemaps.push_back(LoadCubemapFromFiles("res/cubemaps/Lycksele3"));
     Mesh cubeMapMesh = GenerateInvertedCube();
     Shader cubeMapShader = LoadShadersFromFiles("res/shaders/cubemap/cubemap.vert", "res/shaders/cubemap/cubemap.frag");
 
