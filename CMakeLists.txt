@@ -15,6 +15,7 @@ endif()
 include(FetchContent)
 
 # GLFW
+message("Configuring GLFW3")
 FetchContent_Declare(
     glfw3
     GIT_REPOSITORY https://github.com/glfw/glfw.git
@@ -26,6 +27,7 @@ set(GLFW_BUILD_DOCS OFF)
 FetchContent_MakeAvailable(glfw3)
 
 # GLAD
+message("Configuring GLAD")
 FetchContent_Declare(
     glad
     GIT_REPOSITORY https://github.com/Dav1dde/glad
@@ -34,6 +36,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(glad)
 
 # GLM
+message("Configuring GLM")
 FetchContent_Declare(
     glm
     GIT_REPOSITORY https://github.com/g-truc/glm
@@ -41,6 +44,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(glm)
 
 # Dead ImGui
+message("Configuring Dear ImGui")
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui
@@ -58,6 +62,7 @@ if(NOT imgui_POPULATED)
 endif()
 
 # STB libs
+message("Configuring stb")
 FetchContent_Declare(
     stb
     GIT_REPOSITORY https://github.com/nothings/stb
@@ -69,7 +74,7 @@ if(NOT stb_POPULATED)
     target_include_directories(lib_stb SYSTEM INTERFACE ${stb_SOURCE_DIR})
 endif()
 
-file(GLOB SRC src/*.cpp src/*/*.cpp src/*/*.c)
+file(GLOB SRC src/*.cpp src/*/*.cpp src/*/*.c src/*/*.h)
 add_executable(${PROJECT_NAME} ${SRC})
 target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
 target_link_libraries(${PROJECT_NAME} PUBLIC glad lib_stb lib_imgui glfw)
