@@ -17,14 +17,14 @@ include(FetchContent)
 # GLFW
 message("Configuring GLFW3")
 FetchContent_Declare(
-    glfw3
-    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw
     GIT_TAG "3.3.2"
 )
 set(GLFW_BUILD_EXAMPLES OFF)
 set(GLFW_BUILD_TESTS OFF)
 set(GLFW_BUILD_DOCS OFF)
-FetchContent_MakeAvailable(glfw3)
+FetchContent_MakeAvailable(glfw)
 
 # GLAD
 message("Configuring GLAD")
@@ -57,8 +57,8 @@ if(NOT imgui_POPULATED)
     ${imgui_SOURCE_DIR}/examples/imgui_impl_glfw.cpp ${imgui_SOURCE_DIR}/examples/imgui_impl_opengl3.cpp)
     
     target_compile_definitions(lib_imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD)
-    target_include_directories(lib_imgui SYSTEM PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/examples)
-    target_link_libraries(lib_imgui PUBLIC glad)
+    target_include_directories(lib_imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/examples)
+    target_link_libraries(lib_imgui PUBLIC glfw glad)
 endif()
 
 # STB libs
@@ -76,5 +76,10 @@ endif()
 
 file(GLOB SRC src/*.cpp src/*/*.cpp src/*/*.c src/*/*.h)
 add_executable(${PROJECT_NAME} ${SRC})
-target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
-target_link_libraries(${PROJECT_NAME} PUBLIC glad lib_stb lib_imgui glfw)
+if(WIN32)
+    target_compile_options(${PROJECT_NAME} PUBLIC /W4 /D_CRT_SECURE_NO_WARNINGS)
+else()
+    target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
+endif()
+
+target_link_libraries(${PROJECT_NAME} PUBLIC glad glfw glm lib_stb lib_imgui)
