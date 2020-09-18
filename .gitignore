@@ -10,3 +10,4 @@ build
 model-viewer
 build-Release
 build-Debug
+*.manifest
