@@ -21,9 +21,9 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/glfw/glfw
     GIT_TAG "3.3.2"
 )
-set(GLFW_BUILD_EXAMPLES OFF)
-set(GLFW_BUILD_TESTS OFF)
-set(GLFW_BUILD_DOCS OFF)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(glfw)
 
 # GLAD
@@ -83,3 +83,7 @@ else()
 endif()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC glad glfw glm lib_stb lib_imgui)
+set_target_properties(${PROJECT_NAME}
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/.."
+)

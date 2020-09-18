@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build-Debug/model-viewer",
+            "program": "${workspaceFolder}/model-viewer",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
