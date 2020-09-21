@@ -128,42 +128,35 @@ Shader LoadShadersFromFiles(const char* vertexShaderPath, const char* fragmentSh
     return { ID, uniforms };
 }
 
-Texture LoadTextureFromFile(const char* path)
+struct ImageData
 {
-    // OpenGL textures start from lower left corner
-    stbi_set_flip_vertically_on_load(true); 
-
-    // Texture metadata
-    GLuint ID;
+    unsigned char* data;
     int width, height, channels;
-    unsigned char* data = nullptr;
-    bool stb_free = false;
-    unsigned int index = Texture::GlobalTextureIndex++;
+};
 
-    // The cached version's path
-    std::string binPath(path);
-    binPath = binPath.substr(0, binPath.find_last_of('.')) + ".bin";
-    FILE* cachedFile = fopen(binPath.c_str(), "rb");
+void CheckForCache(const char* path, const char* binPath, bool& stb_free, ImageData& idata)
+{
+    FILE* cachedFile = fopen(binPath, "rb");
     
     // No cache file for texture exists. Load and save it
     if(cachedFile == nullptr)
     {
-        data = stbi_load(path, &width, &height, &channels, 0);
-        if(data == nullptr)
+        idata.data = stbi_load(path, &idata.width, &idata.height, &idata.channels, 0);
+        if(idata.data == nullptr)
         {
             printf("Failed to open texture at path: %s\n", path);
             exit(-1);
         }
 
         // Write the metadata and the actual image's data to the cache
-        FILE* outFile = fopen(binPath.c_str(), "wb");
+        FILE* outFile = fopen(binPath, "wb");
         if(outFile == nullptr)
         {
-            printf("Failed to create output binary file at path: %s\n", binPath.c_str());
+            printf("Failed to create output binary file at path: %s\n", binPath);
             exit(-1);
         }
-        fprintf(outFile, "%d %d %d\n", width, height, channels);
-        fwrite(data, sizeof(unsigned char) * (size_t)width * height * channels, 1, outFile);
+        fprintf(outFile, "%d %d %d\n", idata.width, idata.height, idata.channels);
+        fwrite(idata.data, sizeof(unsigned char) * (size_t)idata.width * idata.height * idata.channels, 1, outFile);
 
         // Cleanup
         fclose(outFile);
@@ -174,19 +167,37 @@ Texture LoadTextureFromFile(const char* path)
     else 
     {
         // Get image metadata
-        if(fscanf(cachedFile, "%d %d %d\n", &width, &height, &channels) == EOF)
-            printf("Invalid image metadata contained in file: %s\n", binPath.c_str());
+        if(fscanf(cachedFile, "%d %d %d\n", &idata.width, &idata.height, &idata.channels) == EOF)
+            printf("Invalid image metadata contained in file: %s\n", binPath);
 
         // Get the image's actual data
-        size_t dataSize = (size_t)width * height * channels;
-        data = new unsigned char[dataSize + 1];
-        fread(data, sizeof(unsigned char) * dataSize, 1, cachedFile);
-        data[dataSize] = '\0';
+        size_t dataSize = (size_t)idata.width * idata.height * idata.channels;
+        idata.data = new unsigned char[dataSize + 1];
+        fread(idata.data, sizeof(unsigned char) * dataSize, 1, cachedFile);
+        idata.data[dataSize] = '\0';
 
         // Cleanup
         fclose(cachedFile);
         stb_free = false;
     }
+}
+
+Texture LoadTextureFromFile(const char* path)
+{
+    // OpenGL textures start from lower left corner
+    stbi_set_flip_vertically_on_load(true); 
+
+    // Texture metadata
+    GLuint ID;
+    ImageData idata = {};
+    bool stb_free = false;
+    unsigned int index = Texture::GlobalTextureIndex++;
+
+    // The cached version's path
+    std::string binPath(path);
+    binPath = binPath.substr(0, binPath.find_last_of('.')) + ".bin";
+    
+    CheckForCache(path, binPath.c_str(), stb_free, idata);
 
     // Generate texture from loaded data
     glGenTextures(1, &ID);
@@ -199,18 +210,18 @@ Texture LoadTextureFromFile(const char* path)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    if(channels == 1)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
-    else if(channels == 2)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, width, height, 0, GL_RG, GL_UNSIGNED_BYTE, data);
-    else if(channels == 3)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    else if(channels == 4)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    if(idata.channels == 1)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, idata.width, idata.height, 0, GL_RED, GL_UNSIGNED_BYTE, idata.data);
+    else if(idata.channels == 2)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, idata.width, idata.height, 0, GL_RG, GL_UNSIGNED_BYTE, idata.data);
+    else if(idata.channels == 3)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, idata.width, idata.height, 0, GL_RGB, GL_UNSIGNED_BYTE, idata.data);
+    else if(idata.channels == 4)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, idata.width, idata.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, idata.data);
     else
     {
         printf("Image loaded isn't in any of the supported formats!\n(Supported: RGB, RGBA)\n");
-        stbi_image_free(data);
+        stbi_image_free(idata.data);
 
         glDeleteTextures(1, &ID);
         exit(-1);
@@ -218,16 +229,16 @@ Texture LoadTextureFromFile(const char* path)
 
     glGenerateMipmap(ID);
 
-    if(data != nullptr)
+    if(idata.data != nullptr)
     {
         if(stb_free)
-            stbi_image_free(data);
+            stbi_image_free(idata.data);
         else
-            delete[] data;
+            delete[] idata.data;
     }
 
     printf("Loaded texture file at: %s\n", path);
-    return { (unsigned int)width, (unsigned int)height, (unsigned int)channels, ID, index, std::string("") };
+    return { (unsigned int)idata.width, (unsigned int)idata.height, (unsigned int)idata.channels, ID, index, std::string("") };
 }
 
 Texture LoadCubemapFromFiles(const char* folderPath)
@@ -235,8 +246,7 @@ Texture LoadCubemapFromFiles(const char* folderPath)
     stbi_set_flip_vertically_on_load(false);
 
     std::string path;
-    int width, height, channels;
-    unsigned char* data;
+    ImageData idata = {};
     bool stb_free = false;
     unsigned int index = Texture::GlobalTextureIndex++;
 
@@ -266,70 +276,28 @@ Texture LoadCubemapFromFiles(const char* folderPath)
         // The cached version's path
         path = std::string(folderPath) + "/" + paths[i] + ".jpg";
         std::string binPath = std::string(folderPath) + "/" + paths[i] + ".bin";
-        FILE* cachedFile = fopen(binPath.c_str(), "rb");
+        
+        CheckForCache(path.c_str(), binPath.c_str(), stb_free, idata);
 
-        // No cache file for texture exists. Load and save it
-        if(cachedFile == nullptr)
-        {
-            data = stbi_load(path.c_str(), &width, &height, &channels, 0);
-            if(data == nullptr)
-            {
-                printf("Failed to open texture at path: %s\n", path.c_str());
-                exit(-1);
-            }
-
-            // Write the metadata and the actual image's data to the cache
-            FILE* outFile = fopen(binPath.c_str(), "wb");
-            if(outFile == nullptr)
-            {
-                printf("Failed to create output binary file at path: %s\n", binPath.c_str());
-                exit(-1);
-            }
-            fprintf(outFile, "%d %d %d\n", width, height, channels);
-            fwrite(data, sizeof(unsigned char) * (size_t)width * height * channels, 1, outFile);
-
-            // Cleanup
-            fclose(outFile);
-            stb_free = true;
-            printf("Created cache for image at path: %s\n", path.c_str());
-        }
-        // Cache file exists, load that instead
-        else
-        {
-            // Get image metadata
-            if(fscanf(cachedFile, "%d %d %d\n", &width, &height, &channels) == EOF)
-                printf("Invalid image metadata contained in file: %s\n", binPath.c_str());
-
-            // Get the image's actual data
-            size_t dataSize = (size_t)width * height * channels;
-            data = new unsigned char[dataSize + 1];
-            fread(data, sizeof(unsigned char) * dataSize, 1, cachedFile);
-            data[dataSize] = '\0';
-
-            // Cleanup
-            fclose(cachedFile);
-            stb_free = false;
-        }
-
-        if(data == nullptr)
+        if(idata.data == nullptr)
         {
             printf("Failed to load part of cubemap at path: %s\n", path.c_str());
             exit(-1);
         }
 
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, idata.width, idata.height, 0, GL_RGB, GL_UNSIGNED_BYTE, idata.data);
 
-        if(data != nullptr)
+        if(idata.data != nullptr)
         {
             if(stb_free)
-                stbi_image_free(data);
+                stbi_image_free(idata.data);
             else
-                delete[] data;
+                delete[] idata.data;
         }
     }
 
     printf("Loaded cubemap from folder: %s\n", folderPath);
-    return { (unsigned)width, (unsigned)height, (unsigned)channels, ID, index, std::string(folderPath) };
+    return { (unsigned)idata.width, (unsigned)idata.height, (unsigned)idata.channels, ID, index, std::string(folderPath) };
 }
 
 Mesh LoadMeshFromOBJ(const char* path)
