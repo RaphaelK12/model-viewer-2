@@ -9,7 +9,7 @@ String::String()
 
 String::String(const char* str)
 {
-    length = strlen(str);
+    length = (unsigned long)strlen(str);
     buffer = new char[length + 1];
     strncpy(buffer, str, length);
     buffer[length] = '\0';
