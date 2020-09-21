@@ -1,2 +1,0 @@
-# Assumes you have `glm` and `GLFW` downloaded through package managers
-g++ -Wall -Wextra -O2 src/main.cpp src/AssetManagement/*.cpp src/Display/display.cpp src/Mesh/mesh.cpp -I ./thirdparty/glad/include -I ./thirdparty/imgui-1.78 -I ./thirdparty/stb_image ./thirdparty/glad/src/glad.c ./thirdparty/stb_image/stb_image.c ./thirdparty/imgui-1.78/*.cpp -lglfw -ldl -o model-viewer
