@@ -3,6 +3,7 @@
 #include "AssetManagement/asset_loader.h"
 #include "Display/display.h"
 #include "Camera/camera.h"
+#include "String/string.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <imgui.h>
@@ -60,7 +61,7 @@ int main()
 
     std::vector<const char*> cubemapNames;
     for(auto& c : cubemaps)
-        cubemapNames.push_back(c.path.c_str());
+        cubemapNames.push_back(c.path.C_Str());
 
     // Load lightcube mesh
     Mesh lightMesh = GenerateCube();

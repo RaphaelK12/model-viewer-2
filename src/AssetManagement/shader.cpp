@@ -6,8 +6,16 @@ void UseShader(Shader& shader)
     glUseProgram(shader.ID);
 }
 
-void UniformInt(Shader& shader, const char* location, int value) {glUniform1i(shader.uniformLocations[location], value);}
-void UniformFloat(Shader& shader, const char* location, float value) {glUniform1f(shader.uniformLocations[location], value);}
+void UniformInt(Shader& shader, const char* location, int value) 
+{
+    glUniform1i(shader.uniformLocations[location], value);
+}
+
+void UniformFloat(Shader& shader, const char* location, float value) 
+{
+    glUniform1f(shader.uniformLocations[location], value);
+}
+
 void UniformVec3(Shader& shader, const char* location, glm::vec3& value)
 {
     glUniform3fv(shader.uniformLocations[location], 1, &value.x);

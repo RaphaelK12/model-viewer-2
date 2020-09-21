@@ -1,5 +1,5 @@
 #pragma once
-#include <string>
+#include "../String/string.h"
 
 struct Texture
 {
@@ -8,5 +8,5 @@ struct Texture
 
     static int GlobalTextureIndex;
 
-    std::string path;
+    String path;
 };

@@ -2,7 +2,6 @@
 #include <cstring>
 #include <glad/glad.h>
 #include <glm/vec3.hpp>
-
 #include <stb_image.h>
 
 Shader LoadShadersFromFiles(const char* vertexShaderPath, const char* fragmentShaderPath)
@@ -108,7 +107,7 @@ Shader LoadShadersFromFiles(const char* vertexShaderPath, const char* fragmentSh
         for(int i = 0; i < uniformCount; i++)
         {
             glGetActiveUniform(ID, i, maxNameLength, &length, &count, &type, buffer);
-            uniforms[std::string(buffer, length)] = glGetUniformLocation(ID, buffer);
+            uniforms[std::string(buffer)] = glGetUniformLocation(ID, buffer);
         }
 
         delete[] buffer;
@@ -238,7 +237,7 @@ Texture LoadTextureFromFile(const char* path)
     }
 
     printf("Loaded texture file at: %s\n", path);
-    return { (unsigned int)idata.width, (unsigned int)idata.height, (unsigned int)idata.channels, ID, index, std::string("") };
+    return { (unsigned int)idata.width, (unsigned int)idata.height, (unsigned int)idata.channels, ID, index, String("") };
 }
 
 Texture LoadCubemapFromFiles(const char* folderPath)
@@ -297,7 +296,7 @@ Texture LoadCubemapFromFiles(const char* folderPath)
     }
 
     printf("Loaded cubemap from folder: %s\n", folderPath);
-    return { (unsigned)idata.width, (unsigned)idata.height, (unsigned)idata.channels, ID, index, std::string(folderPath) };
+    return { (unsigned)idata.width, (unsigned)idata.height, (unsigned)idata.channels, ID, index, String(folderPath) };
 }
 
 Mesh LoadMeshFromOBJ(const char* path)
