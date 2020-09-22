@@ -80,9 +80,10 @@ if(WIN32)
     target_compile_options(${PROJECT_NAME} PUBLIC /W4 /D_CRT_SECURE_NO_WARNINGS)
 else()
     target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
-    set_target_properties(${PROJECT_NAME}
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/..")
 endif()
+set_target_properties(${PROJECT_NAME}
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/.."
+)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC glad glfw glm lib_stb lib_imgui)
