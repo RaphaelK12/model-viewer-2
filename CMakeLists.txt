@@ -76,7 +76,7 @@ endif()
 
 file(GLOB SRC src/*.cpp src/*/*.cpp src/*/*.c src/*/*.h)
 add_executable(${PROJECT_NAME} ${SRC})
-if(WIN32)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(${PROJECT_NAME} PUBLIC /W4 /D_CRT_SECURE_NO_WARNINGS)
 else()
     target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
